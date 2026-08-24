@@ -18,24 +18,6 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-/* The window switcher routes, so it is anchors where the study had buttons. */
-.seg a {
-  padding: clamp(5px, 0.7vh, 8px) clamp(11px, 1.2vw, 17px);
-  border-radius: 999px;
-  font-size: var(--t1);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--mute);
-  transition: color 300ms var(--ease), background 300ms var(--ease);
-}
-.seg a[aria-pressed="true"] {
-  color: #05121a;
-  background: var(--text);
-}
-.seg a:hover {
-  color: var(--text);
-}
-
 /* One more track than the study: it had no downtime column. */
 .board {
   --cols: clamp(42px, 4.6vw, 62px) minmax(0, 1.35fr) minmax(0, 0.8fr)
@@ -138,11 +120,16 @@ button:focus-visible {
 .nav.me .pfp {
   width: clamp(24px, 2.5vh, 30px);
   height: clamp(24px, 2.5vh, 30px);
-  border: 1px solid var(--stroke);
-  transition: border-color 260ms var(--ease);
+  transition: opacity 260ms var(--ease);
 }
 
-.nav.me:hover .pfp,
-.nav.me[aria-current="true"] .pfp {
-  border-color: hsl(var(--hue) 96% 70%);
+.nav.me:hover .pfp {
+  opacity: 0.8;
+}
+
+/* No ring on the current page: a face does not need a selected state, and the
+   outline read as a defect. */
+.nav.me,
+.nav.me[aria-current="true"] {
+  background: none;
 }
