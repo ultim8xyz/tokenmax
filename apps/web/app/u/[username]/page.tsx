@@ -154,7 +154,7 @@ export default async function ProfilePage({
             </div>
 
             <div className="chart rise" style={{ "--i": 2 } as React.CSSProperties}>
-              <SpendChart days={member.days} />
+              <SpendChart days={member.days} hue={member.hue} />
               <div className="lbl">Daily spend · last 30</div>
               <div className="peak">peak {usd(peakDay)}</div>
             </div>

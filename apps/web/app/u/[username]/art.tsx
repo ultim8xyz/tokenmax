@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { paintChart, paintWorld } from "@/lib/console/art";
 import { denseDays, usd, type DayRow } from "@/lib/console/board";
 import { isoDate, shiftDays } from "@/lib/streak";
@@ -32,10 +32,11 @@ interface Hover {
  * itself, and inside a grid it is still zero-sized on the frame React first
  * hands it over — which is why it drew nothing at all.
  */
-export function SpendChart({ days }: { days: DayRow[] }) {
+export function SpendChart({ days, hue }: { days: DayRow[]; hue: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [hover, setHover] = useState<Hover | null>(null);
-  const series = denseDays(days);
+  // Memoised so the observer is not torn down and rebuilt on every pointer move.
+  const series = useMemo(() => denseDays(days), [days]);
 
   useEffect(() => {
     const cv = ref.current;
@@ -43,14 +44,16 @@ export function SpendChart({ days }: { days: DayRow[] }) {
 
     const paint = () => {
       if (cv.clientWidth === 0 || cv.clientHeight === 0) return;
-      paintChart(cv, { days: series });
+      // paintChart draws in the member's hue; without it every colour stop
+      // reads "hsla(undefined, ...)" and the canvas throws.
+      paintChart(cv, { days: series, hue });
     };
 
     const observer = new ResizeObserver(paint);
     observer.observe(cv);
     paint();
     return () => observer.disconnect();
-  }, [series]);
+  }, [series, hue]);
 
   function track(event: React.PointerEvent<HTMLDivElement>) {
     const box = event.currentTarget.getBoundingClientRect();
