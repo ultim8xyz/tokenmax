@@ -17,7 +17,7 @@ export default async function SettingsPage() {
       : { data: null };
 
   return (
-    <Shell active="/settings">
+    <Shell active="/settings" me={member}>
       <section className="view on" id="settings">
         <div className="setwrap">
           <div className="rows rise" style={{ "--i": 0 } as React.CSSProperties}>

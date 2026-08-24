@@ -66,10 +66,11 @@ export default async function ProfilePage({
   const peakDay = Math.max(0, ...member.days.map((d) => Number(d.cost_usd)));
   const quiet = maxDowntimeSeconds(member.days as unknown as ActivityDay[]);
   const mixTotal = member.mix.reduce((a, [, n]) => a + n, 0);
+  const rate = costPerKiloLine(t.cost, t.linesAdded);
   const pot = usd0(board.reduce((a, m) => a + total(m.days).cost, 0));
 
   return (
-    <Shell active="/" pot={pot} members={board.length}>
+    <Shell active={`/u/${viewer.username}`} pot={pot} members={board.length} me={viewer}>
       <HueDrift hue={member.hue} />
       <section className="view on" id="card">
         <div className="cardwrap">
@@ -162,14 +163,21 @@ export default async function ProfilePage({
             <div className="bigrow rise" style={{ "--i": 2 } as React.CSSProperties}>
               <Big
                 k="Per 1,000 lines"
-                v={(() => {
-                  const rate = costPerKiloLine(t.cost, t.linesAdded);
-                  return rate === null ? "—" : usd(rate);
-                })()}
-                n="what output costs"
+                v={rate === null ? "—" : usd(rate)}
+                n={rate === null ? "no lines counted yet" : "what output costs"}
                 hi
               />
-              <Big k="Lines written" v={toks(t.linesAdded)} n="added, agent-assisted" />
+              <Big
+                k="Lines written"
+                v={t.linesAdded > 0 ? toks(t.linesAdded) : "—"}
+                n={
+                  t.linesAdded > 0
+                    ? "added, agent-assisted"
+                    : isSelf
+                      ? "run tokenmax to fill this in"
+                      : "not synced since lines landed"
+                }
+              />
               <Big k="Commits" v={String(t.commits)} n="carrying a Claude trailer" />
               <Big k="Projects" v={String(t.projects)} n="busiest day" />
             </div>

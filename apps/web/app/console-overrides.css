@@ -127,3 +127,22 @@ button:focus-visible {
 .brand:hover {
   opacity: 0.72;
 }
+
+/* The viewer's own face, and the way to their profile. */
+.nav.me {
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.nav.me .pfp {
+  width: clamp(24px, 2.5vh, 30px);
+  height: clamp(24px, 2.5vh, 30px);
+  border: 1px solid var(--stroke);
+  transition: border-color 260ms var(--ease);
+}
+
+.nav.me:hover .pfp,
+.nav.me[aria-current="true"] .pfp {
+  border-color: hsl(var(--hue) 96% 70%);
+}

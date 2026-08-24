@@ -12,10 +12,12 @@ interface Props {
   pot?: string;
   members?: number;
   hints?: React.ReactNode;
+  /** The viewer, for the way back to their own profile. */
+  me?: { username: string; avatarUrl: string | null };
   children: React.ReactNode;
 }
 
-export function Shell({ active, pot, members, hints, children }: Props) {
+export function Shell({ active, pot, members, hints, me, children }: Props) {
   return (
     <div id="shell">
       <header className="rail">
@@ -36,6 +38,21 @@ export function Shell({ active, pot, members, hints, children }: Props) {
               {label}
             </Link>
           ))}
+          {me && (
+            <Link
+              href={`/u/${me.username}`}
+              className="nav me"
+              aria-label={`Your profile, @${me.username}`}
+              aria-current={String(active === `/u/${me.username}`) as "true" | "false"}
+            >
+              {me.avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img className="pfp" src={me.avatarUrl} alt="" />
+              ) : (
+                <span className="pfp" />
+              )}
+            </Link>
+          )}
         </nav>
       </header>
 

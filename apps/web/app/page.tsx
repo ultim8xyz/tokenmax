@@ -28,7 +28,7 @@ export default async function Home({
 }: {
   searchParams: Promise<{ w?: string }>;
 }) {
-  await requireMember("/");
+  const me = await requireMember("/");
   const { w } = await searchParams;
   const window: WindowKey = parseWindow(w);
 
@@ -42,7 +42,7 @@ export default async function Home({
   const label = WINDOWS.find((x) => x.key === window)!.label.toLowerCase();
 
   return (
-    <Shell active="/" pot={pot} members={members.length}>
+    <Shell active="/" pot={pot} members={members.length} me={me}>
       <HueDrift hue={rows[0]?.m.hue ?? 210} />
       <section className="view on" id="lineup">
         <div className="shelfhead rise" style={{ "--i": 0 } as React.CSSProperties}>
