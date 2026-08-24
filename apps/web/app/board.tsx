@@ -82,6 +82,7 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
               <Link
                 key={m.username}
                 href={`/u/${m.username}`}
+                prefetch
                 className={`brow${i === 0 ? " top" : ""}`}
                 style={{ "--th": m.hue } as React.CSSProperties}
                 aria-label={`${m.username}, rank ${i + 1}, ${usd(t.cost)}`}

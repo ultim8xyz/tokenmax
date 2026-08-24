@@ -98,8 +98,12 @@ avoiding round trips rather than caching whole pages.
 - The leaderboard's window switch happens in the browser. All three windows are
   cut from the same thirty days, and a navigation would have paid two auth round
   trips to re-render numbers already on the page.
-- `app/loading.tsx` puts the rail and the backdrop on screen while the numbers
-  are still coming, instead of holding the previous page.
+- Every link that navigates prefetches, so the payload is usually already in
+  the browser by the time it is clicked. There is deliberately no loading
+  screen: the previous page holds until the next one is ready, which reads as
+  instant, where a spinner reads as a wait.
+- Totals roll to their new value rather than snapping, and only on change — a
+  page never counts up from zero on arrival.
 
 ## Environment
 

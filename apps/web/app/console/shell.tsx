@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Rolling } from "./rolling";
 
 const VIEWS: [string, string][] = [
   ["/", "Leaderboard"],
@@ -9,7 +10,7 @@ interface Props {
   /** Which nav entry reads as current. A member page is still the leaderboard —
    *  it is the same place, one level in. */
   active?: string;
-  pot?: string;
+  pot?: number;
   members?: number;
   hints?: React.ReactNode;
   /** The viewer, for the way back to their own profile. */
@@ -25,13 +26,25 @@ export function Shell({ active, pot, members, hints, me, children }: Props) {
           TOKEN<em>MAX</em>
         </Link>
         <div className="pot">
-          POOL <b>{pot ?? "—"}</b> &nbsp;/&nbsp; <b>{members ?? "—"}</b> MEMBERS
+          POOL{" "}
+          <b>
+            {pot === undefined ? (
+              "—"
+            ) : (
+              <Rolling
+                value={pot}
+                format={(n) => "$" + Math.round(n).toLocaleString("en-US")}
+              />
+            )}
+          </b>
+          &nbsp;/&nbsp; <b>{members ?? "—"}</b> MEMBERS
         </div>
         <nav className="navs">
           {VIEWS.map(([href, label]) => (
             <Link
               key={href}
               href={href}
+              prefetch
               className="nav"
               aria-current={String(active === href) as "true" | "false"}
             >
@@ -41,6 +54,7 @@ export function Shell({ active, pot, members, hints, me, children }: Props) {
           {me && (
             <Link
               href={`/u/${me.username}`}
+              prefetch
               className="nav me"
               aria-label={`Your profile, @${me.username}`}
               aria-current={String(active === `/u/${me.username}`) as "true" | "false"}

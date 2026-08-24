@@ -1,7 +1,6 @@
 import { requireMember } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/service";
 import { loadBoardSummary } from "@/lib/console/load";
-import { usd0 } from "@/lib/console/board";
 import { Shell } from "../console/shell";
 import { AliasRow, MachineRow } from "./controls";
 
@@ -21,7 +20,7 @@ export default async function SettingsPage() {
   ]);
 
   return (
-    <Shell active="/settings" pot={usd0(summary.pot)} members={summary.members} me={member}>
+    <Shell active="/settings" pot={summary.pot} members={summary.members} me={member}>
       <section className="view on" id="settings">
         <div className="setwrap">
           <div className="rows rise" style={{ "--i": 0 } as React.CSSProperties}>

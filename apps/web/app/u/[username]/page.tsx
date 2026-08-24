@@ -10,7 +10,6 @@ import {
   toks,
   total,
   usd,
-  usd0,
   windowDays,
 } from "@/lib/console/board";
 import { maxDowntimeSeconds, type ActivityDay } from "@/lib/downtime";
@@ -67,7 +66,7 @@ export default async function ProfilePage({
   const quiet = maxDowntimeSeconds(member.days as unknown as ActivityDay[]);
   const mixTotal = member.mix.reduce((a, [, n]) => a + n, 0);
   const rate = costPerKiloLine(t.cost, t.linesAdded);
-  const pot = usd0(board.reduce((a, m) => a + total(m.days).cost, 0));
+  const pot = board.reduce((a, m) => a + total(m.days).cost, 0);
 
   return (
     <Shell active={`/u/${viewer.username}`} pot={pot} members={board.length} me={viewer}>
