@@ -81,7 +81,7 @@ export function MachineRow() {
           </div>
         )}
       </div>
-      <button className="button-like nav" onClick={mint} disabled={busy}>
+      <button className="nav" onClick={mint} disabled={busy}>
         {busy ? "…" : code ? "New code" : "Get a code"}
       </button>
     </div>
