@@ -72,7 +72,7 @@ five clamp type steps, Archivo over Chivo Mono, one weight.
 | `lib/console/board.ts` | Rank, class, streak, sparkline — over real rollups, not the study's mock |
 | `lib/console/load.ts` | The two reads every screen shares |
 | `lib/console/flight.ts` | The arrival, ported verbatim and kept behind one entry point |
-| `app/console/` | Shell, rail, starfield |
+| `app/console/` | Shell, rail, the live starfield, the lerped `--hue` |
 
 Deviations from the study, each because the data is not there rather than as a
 style choice:
