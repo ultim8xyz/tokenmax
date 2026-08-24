@@ -27,6 +27,33 @@ export const loadBoard = unstable_cache(loadBoardUncached, ["board"], {
   tags: [BOARD_TAG],
 });
 
+export interface BoardSummary {
+  pot: number;
+  members: number;
+}
+
+/**
+ * The two numbers in the rail, on every page.
+ *
+ * Its own cache entry rather than a slice of the board: settings showed dashes
+ * because reading the whole board to render two numbers was too expensive to
+ * justify, and dashes are worse than either.
+ */
+export const loadBoardSummary = unstable_cache(
+  async (): Promise<BoardSummary> => {
+    const members = await loadBoardUncached();
+    return {
+      pot: members.reduce(
+        (a, m) => a + m.days.reduce((x, d) => x + Number(d.cost_usd), 0),
+        0,
+      ),
+      members: members.length,
+    };
+  },
+  ["board-summary"],
+  { revalidate: 60, tags: [BOARD_TAG] },
+);
+
 async function loadBoardUncached(today = new Date()): Promise<MemberRow[]> {
   const service = getServiceClient();
   const since = isoDate(shiftDays(today, -29));

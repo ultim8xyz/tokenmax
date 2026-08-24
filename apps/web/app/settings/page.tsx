@@ -1,5 +1,7 @@
 import { requireMember } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/service";
+import { loadBoardSummary } from "@/lib/console/load";
+import { usd0 } from "@/lib/console/board";
 import { Shell } from "../console/shell";
 import { AliasRow, MachineRow } from "./controls";
 
@@ -11,13 +13,15 @@ export default async function SettingsPage() {
 
   // Settings shows no numbers, so it does not read the board. Loading it here
   // cost two more round trips on a page that displays neither.
-  const { data: members } =
+  const [{ data: members }, summary] = await Promise.all([
     member.role === "owner"
-      ? await service.from("profiles").select("username, role, onboarded_at").order("created_at")
-      : { data: null };
+      ? service.from("profiles").select("username, role, onboarded_at").order("created_at")
+      : Promise.resolve({ data: null }),
+    loadBoardSummary(),
+  ]);
 
   return (
-    <Shell active="/settings" me={member}>
+    <Shell active="/settings" pot={usd0(summary.pot)} members={summary.members} me={member}>
       <section className="view on" id="settings">
         <div className="setwrap">
           <div className="rows rise" style={{ "--i": 0 } as React.CSSProperties}>

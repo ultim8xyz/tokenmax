@@ -87,6 +87,20 @@ style choice:
   study had no equivalent for. It is separate because `console.css` is
   re-extracted wholesale.
 
+## Speed
+
+Every page is rendered per request behind an auth check, so the work is in
+avoiding round trips rather than caching whole pages.
+
+- `loadBoard` and `loadBoardSummary` are cached for sixty seconds under one tag,
+  shared by every viewer. A push drops the tag, so a sync is visible immediately
+  rather than a minute later.
+- The leaderboard's window switch happens in the browser. All three windows are
+  cut from the same thirty days, and a navigation would have paid two auth round
+  trips to re-render numbers already on the page.
+- `app/loading.tsx` puts the rail and the backdrop on screen while the numbers
+  are still coming, instead of holding the previous page.
+
 ## Environment
 
 See `.env.example`. `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS and is used only in
