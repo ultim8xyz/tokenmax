@@ -118,3 +118,12 @@ button:focus-visible {
   font-size: var(--t2);
   color: var(--text);
 }
+
+/* The wordmark is the way back, so it has to read as a target. */
+.brand {
+  transition: opacity 240ms var(--ease);
+}
+
+.brand:hover {
+  opacity: 0.72;
+}

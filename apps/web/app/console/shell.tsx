@@ -19,9 +19,9 @@ export function Shell({ active, pot, members, hints, children }: Props) {
   return (
     <div id="shell">
       <header className="rail">
-        <div className="brand">
+        <Link href="/" className="brand" aria-label="Leaderboard">
           TOKEN<em>MAX</em>
-        </div>
+        </Link>
         <div className="pot">
           POOL <b>{pot ?? "—"}</b> &nbsp;/&nbsp; <b>{members ?? "—"}</b> MEMBERS
         </div>
@@ -51,9 +51,9 @@ export function PlainShell({ children }: { children: React.ReactNode }) {
   return (
     <div id="shell">
       <header className="rail">
-        <div className="brand">
+        <Link href="/" className="brand" aria-label="Leaderboard">
           TOKEN<em>MAX</em>
-        </div>
+        </Link>
       </header>
       <main id="stage">{children}</main>
       <div className="hints" />

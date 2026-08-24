@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 
 /**
  * A blank page with "a client-side exception has occurred" tells nobody
@@ -20,9 +21,9 @@ export default function ErrorBoundary({
   return (
     <div id="shell">
       <header className="rail">
-        <div className="brand">
+        <Link href="/" className="brand" aria-label="Leaderboard">
           TOKEN<em>MAX</em>
-        </div>
+        </Link>
       </header>
       <main id="stage">
         <section className="view on" id="onboard">
@@ -46,6 +47,13 @@ export default function ErrorBoundary({
             <button className="go rise" style={{ "--i": 4 } as React.CSSProperties} onClick={reset}>
               Try again
             </button>
+            <Link
+              className="skip rise"
+              style={{ "--i": 5, textAlign: "center" } as React.CSSProperties}
+              href="/"
+            >
+              Back to the leaderboard
+            </Link>
           </div>
         </section>
       </main>

@@ -59,8 +59,10 @@ export function SpendChart({ days, hue }: { days: DayRow[]; hue: number }) {
     const box = event.currentTarget.getBoundingClientRect();
     const ratio = (event.clientX - box.left) / Math.max(1, box.width);
     const i = Math.min(series.length - 1, Math.max(0, Math.round(ratio * (series.length - 1))));
+    // The label follows the cursor; only the reading snaps to a day. Pinning
+    // the label to the day made it lurch between columns.
     setHover({
-      x: (i / (series.length - 1)) * box.width,
+      x: Math.min(box.width, Math.max(0, event.clientX - box.left)),
       date: isoDate(shiftDays(new Date(), i - (series.length - 1))),
       cost: series[i]?.cost ?? 0,
     });
