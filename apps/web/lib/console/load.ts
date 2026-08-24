@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { getServiceClient } from "@/lib/supabase/service";
 import { isoDate, shiftDays } from "@/lib/streak";
 import { hueFor, type DayRow, type MemberRow } from "@/lib/console/board";
@@ -12,7 +13,21 @@ const DAILY_COLUMNS =
  * audience is a handful of friends, so this is cheaper than a view that would
  * have to carry a sparkline.
  */
-export async function loadBoard(today = new Date()): Promise<MemberRow[]> {
+export const BOARD_TAG = "board";
+
+/**
+ * The board is the same for everyone, so it is fetched once and shared.
+ *
+ * Sixty seconds is the ceiling on staleness; a push clears the tag, so a sync
+ * shows up immediately rather than a minute later. Per-member reads stay
+ * uncached — those differ by viewer.
+ */
+export const loadBoard = unstable_cache(loadBoardUncached, ["board"], {
+  revalidate: 60,
+  tags: [BOARD_TAG],
+});
+
+async function loadBoardUncached(today = new Date()): Promise<MemberRow[]> {
   const service = getServiceClient();
   const since = isoDate(shiftDays(today, -29));
 

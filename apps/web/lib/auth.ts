@@ -16,6 +16,17 @@ export interface Member {
 }
 
 
+/**
+ * Whether signing in with GitHub is enough to become a member.
+ *
+ * Open by default. Set TOKENMAX_OPEN_SIGNUP=0 to go back to the invite list,
+ * which still exists underneath — closing the door is a config change, not a
+ * code change.
+ */
+export function signupOpen(): boolean {
+  return process.env.TOKENMAX_OPEN_SIGNUP !== "0";
+}
+
 /** The GitHub login that becomes the owner on first sign-in. Set this before
  *  anyone signs in, or the instance has no way to hand out invites. */
 export function ownerLogin(): string | null {

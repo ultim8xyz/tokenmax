@@ -7,9 +7,9 @@ the totals to an instance you run.
 Prompts, conversations, source, and file paths never leave the machine. What
 crosses the wire is per-day numbers, model names, and a device label.
 
-**Invite only.** Nothing is world readable. Completing GitHub OAuth is not
-membership — only an invited login gets a profile row, and every read policy
-keys off that row. Search engines are excluded via `robots.txt`.
+**Members only, not public.** Nothing is world readable and search engines are
+excluded via `robots.txt`, but anyone who signs in with GitHub becomes a member.
+Membership is a `profiles` row, and every read policy keys off it.
 
 ## Layout
 
@@ -106,16 +106,18 @@ sign-in.
 
 ## Membership
 
+Signup is **open**: anyone who signs in with GitHub gets a profile.
+
+- `TOKENMAX_OPEN_SIGNUP=0` shuts the door again and falls back to the invite
+  list, which still exists underneath. Closing it is a config change, not a code
+  change.
 - `TOKENMAX_OWNER_GITHUB_LOGIN` names the account that becomes owner on first
-  sign-in. Set it **before** anyone signs in; it is the only way the first
-  invite gets handed out.
-- The owner adds GitHub usernames at `/settings`. An invited login becomes a
-  member on its first sign-in and the invite is consumed.
-- Anyone else who completes OAuth is signed straight back out and sees "not
-  invited". They end up with an `auth.users` row and nothing else, which every
-  policy treats as a stranger.
-- Any member can hide from the shared leaderboard at `/settings`; their own
-  profile keeps working.
+  sign-in. Only the owner sees the member list.
+- With the door shut, an uninvited login finishes OAuth holding an `auth.users`
+  row and no profile, which every read policy treats as a stranger.
+
+`lib/admission.ts` is the single branch that decides who gets in, pulled out of
+the callback so it can be tested without an OAuth round trip.
 
 ## The instance
 

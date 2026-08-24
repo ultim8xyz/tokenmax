@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/supabase/service";
-import { ownerLogin } from "@/lib/auth";
+import { ownerLogin, signupOpen } from "@/lib/auth";
 import { normalizeGithubLogin } from "@/lib/github";
+import { admit } from "@/lib/admission";
 
 const MAX_USERNAME_ATTEMPTS = 20;
 
@@ -15,27 +16,34 @@ function slugify(input: string): string {
   return base.length >= 2 ? base : `builder-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/** Owner first, then the invite list. Anyone else finishes OAuth with an
- *  auth.users row and no profile, which every read policy treats as a stranger. */
 async function resolveRole(githubLogin: string | null): Promise<"owner" | "member" | null> {
   if (!githubLogin) return null;
-
   const service = getServiceClient();
-  if (githubLogin === ownerLogin()) {
-    const { count } = await service
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("role", "owner");
-    if ((count ?? 0) === 0) return "owner";
+  const open = signupOpen();
+
+  const { count } = await service
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("role", "owner");
+
+  // Only consulted when the door is shut, so the open path costs one query.
+  let invited = false;
+  if (!open) {
+    const { data } = await service
+      .from("invites")
+      .select("github_login")
+      .eq("github_login", githubLogin)
+      .maybeSingle();
+    invited = Boolean(data);
   }
 
-  const { data: invite } = await service
-    .from("invites")
-    .select("github_login")
-    .eq("github_login", githubLogin)
-    .maybeSingle();
-
-  return invite ? "member" : null;
+  return admit({
+    githubLogin,
+    open,
+    ownerLogin: ownerLogin(),
+    ownerTaken: (count ?? 0) > 0,
+    invited,
+  });
 }
 
 async function createProfile(
@@ -112,7 +120,9 @@ async function handle(request: Request, url: URL, site: string) {
     .maybeSingle();
 
   if (!existing) {
-    if (!ownerLogin()) {
+    // With signup open there is nothing for an owner to gate, so a missing
+    // owner login is no longer fatal.
+    if (!signupOpen() && !ownerLogin()) {
       throw new CallbackError("no-owner-configured", "TOKENMAX_OWNER_GITHUB_LOGIN is not set");
     }
     const role = await resolveRole(githubLogin);

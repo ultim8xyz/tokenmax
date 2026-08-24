@@ -52,9 +52,7 @@ function LoginInner() {
         {denied && (
           <div className="wait rise" style={{ "--i": 4 } as React.CSSProperties}>
             <span className="d" />
-            <span>
-              Not invited. Ask whoever runs this instance to add your GitHub username.
-            </span>
+            <span>That account could not be admitted. Try signing in again.</span>
           </div>
         )}
         {failure && (

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { authenticate } from "@/lib/api/cli-auth";
 import { getServiceClient } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
+import { BOARD_TAG } from "@/lib/console/load";
 
 const MAX_BACKFILL_DAYS = 30;
 const MAX_ENTRIES = MAX_BACKFILL_DAYS + 2;
@@ -191,6 +193,10 @@ export async function POST(request: Request) {
     .update({ onboarded_at: now })
     .eq("id", auth.userId)
     .is("onboarded_at", null);
+
+  // A sync should be on the board by the time the pusher opens it, so the
+  // shared cache is dropped rather than waited out.
+  revalidateTag(BOARD_TAG);
 
   const dates = entries.map((e) => e.date);
   const [{ data: rollups }, { data: devices }] = await Promise.all([
