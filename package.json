@@ -1,0 +1,13 @@
+{
+  "name": "tokenmax",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build:cli": "cd packages/cli && bun run build",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "cd packages/cli && bun test && cd ../../apps/web && bun test"
+  }
+}

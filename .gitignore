@@ -1,0 +1,9 @@
+node_modules/
+dist/
+# The CLI ships its build, so installing from git needs no toolchain.
+!packages/cli/dist/
+.next/
+.env
+.env.local
+.vercel
+*.tsbuildinfo

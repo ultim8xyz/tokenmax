@@ -1,0 +1,43 @@
+{
+  "name": "@ultim8xyz/tokenmax",
+  "version": "0.1.0",
+  "description": "Push your AI coding-agent usage to your own tokenmax instance",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "codex",
+    "ccusage",
+    "tokens",
+    "usage",
+    "cli"
+  ],
+  "type": "module",
+  "bin": {
+    "tokenmax": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "prepublishOnly": "tsup"
+  },
+  "dependencies": {
+    "ccusage": "20.0.20"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.0",
+    "@types/node": "^20",
+    "tsup": "^8.5.1",
+    "typescript": "^5"
+  }
+}
