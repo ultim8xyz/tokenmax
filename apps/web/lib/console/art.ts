@@ -6,6 +6,8 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import type { DenseDay } from "@/lib/console/board";
+
 export const rng = (s: number) => () => {
   s |= 0;
   s = (s + 0x6d2b79f5) | 0;
@@ -216,7 +218,11 @@ export function paintMark(cv: any, hue: number, k: number) {
   c.fillStyle = g; c.beginPath(); c.arc(cx, cy, U * 0.42, 0, Math.PI * 2); c.fill();
 }
 
-export function paintChart(cv: any, p: any) {
+// `cv` stays `any` on purpose: typing it makes getContext("2d") nullable and
+// puts a null guard in front of every draw call below. `p` is typed because
+// that is where the bug was — the start-of-window label read a property the
+// series did not carry.
+export function paintChart(cv: any, p: { days: DenseDay[]; hue: number }) {
   const dpr = Math.min(devicePixelRatio || 1, 2);
   const r = cv.getBoundingClientRect();
   const w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
@@ -264,7 +270,7 @@ export function paintChart(cv: any, p: any) {
   c.shadowBlur = 0;
 
   // Mark the single biggest day and nothing else.
-  const bi = days.reduce((b: number, d: any, i: number) => (d.cost > days[b].cost ? i : b), 0);
+  const bi = days.reduce((b, d, i) => (d.cost > days[b].cost ? i : b), 0);
   c.beginPath(); c.arc(X(bi), Y(days[bi].cost), 4.5, 0, Math.PI * 2);
   c.fillStyle = "#fff"; c.fill();
   c.beginPath(); c.arc(X(bi), Y(days[bi].cost), 9, 0, Math.PI * 2);
