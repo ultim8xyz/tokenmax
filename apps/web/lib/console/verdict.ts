@@ -8,6 +8,6 @@ export interface Verdict {
 
 export function verdictFor(weekCostUsd: number): Verdict {
   return weekCostUsd >= BEAST_THRESHOLD_USD
-    ? { headline: "You're a beast.", beast: true }
-    : { headline: "Gotta step your game up.", beast: false };
+    ? { headline: "beast.", beast: true }
+    : { headline: "step it up.", beast: false };
 }

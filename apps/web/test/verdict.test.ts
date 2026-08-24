@@ -11,10 +11,10 @@ describe("verdictFor", () => {
   });
 
   it.each([[0], [1], [999.99]])("nudges at %p", (spend) => {
-    expect(verdictFor(spend).headline).toBe("Gotta step your game up.");
+    expect(verdictFor(spend).headline).toBe("step it up.");
   });
 
   it.each([[1000], [5000]])("salutes at %p", (spend) => {
-    expect(verdictFor(spend).headline).toBe("You're a beast.");
+    expect(verdictFor(spend).headline).toBe("beast.");
   });
 });

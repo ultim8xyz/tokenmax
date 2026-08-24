@@ -156,8 +156,7 @@ export function ConnectMachine({
           <span>
             {connected ? (
               <>
-                Push received from <b>{devices.map((d) => d.name).join(", ")}</b> — stats
-                compiled. <b>{usd(week)}</b> in the past 7 days.{" "}
+                stats compiled. <b>{usd(week)}</b> in the past 7 days.{" "}
                 {verdictFor(week).headline}
               </>
             ) : (
