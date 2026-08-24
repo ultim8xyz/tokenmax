@@ -1,0 +1,50 @@
+/* Overrides for things the design study did not have to solve.
+ *
+ * Kept out of console.css because that file is a verbatim copy of the study and
+ * gets re-extracted wholesale whenever the study moves. Anything hand-written
+ * in there would be lost on the next pass.
+ */
+
+/* The study routes with <button>; real URLs mean <a>, which arrives underlined
+ * and blue unless it is told otherwise. */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+/* A member's GitHub picture, which the study's mock had no equivalent for. */
+.pfp {
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex: none;
+  background: var(--glass2);
+}
+
+.brow .who {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 0.9vw, 13px);
+  min-width: 0;
+}
+
+.brow .pfp {
+  width: clamp(26px, 2.7vh, 34px);
+  height: clamp(26px, 2.7vh, 34px);
+}
+
+.art .pfp {
+  position: absolute;
+  left: clamp(14px, 1.4vw, 22px);
+  top: clamp(14px, 1.4vw, 22px);
+  width: clamp(40px, 4.6vh, 58px);
+  height: clamp(40px, 4.6vh, 58px);
+  border: 1px solid var(--stroke2);
+  z-index: 2;
+}

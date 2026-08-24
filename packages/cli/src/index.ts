@@ -1,6 +1,7 @@
 import { DEFAULT_API_URL, loadConfig } from "./config.js";
 import { loginCommand } from "./commands/login.js";
 import { pushCommand } from "./commands/push.js";
+import { autoCommand } from "./commands/auto.js";
 import { setupCommand } from "./commands/setup.js";
 import { statusCommand } from "./commands/status.js";
 
@@ -12,6 +13,7 @@ Usage
   tokenmax login           Authenticate this device in the browser instead
   tokenmax push [options]  Push usage
   tokenmax status          Streak, weekly spend, rank, and per-device split
+  tokenmax auto [--off]    Show, install, or remove the daily sync
 
 Options
   --date YYYY-MM-DD        Push one specific day
@@ -28,6 +30,7 @@ interface Options {
   date?: string;
   days?: number;
   dryRun: boolean;
+  off: boolean;
   apiUrl: string;
   help: boolean;
 }
@@ -37,7 +40,7 @@ function parseArgs(argv: string[]): {
   arg: string | undefined;
   options: Options;
 } {
-  const options: Options = { dryRun: false, apiUrl: DEFAULT_API_URL, help: false };
+  const options: Options = { dryRun: false, off: false, apiUrl: DEFAULT_API_URL, help: false };
   let command: string | undefined;
   let arg: string | undefined;
 
@@ -47,6 +50,7 @@ function parseArgs(argv: string[]): {
 
     if (token === "--help" || token === "-h") options.help = true;
     else if (token === "--dry-run") options.dryRun = true;
+    else if (token === "--off") options.off = true;
     else if (token === "--date") options.date = argv[++i];
     else if (token === "--days") options.days = Number(argv[++i]);
     else if (token === "--api-url") options.apiUrl = argv[++i] ?? options.apiUrl;
@@ -68,6 +72,9 @@ async function main(): Promise<void> {
   switch (command) {
     case "setup":
       await setupCommand(arg ?? "", options.apiUrl);
+      return;
+    case "auto":
+      autoCommand(options.off);
       return;
     case "login":
       await loginCommand(options.apiUrl);

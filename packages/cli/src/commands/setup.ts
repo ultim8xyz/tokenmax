@@ -1,6 +1,7 @@
 import { apiRequestNoAuth } from "../lib/api.js";
 import { getDeviceName, getMachineId, loadConfig, saveConfig } from "../config.js";
 import { pushCommand } from "./push.js";
+import { install as installSchedule, isInstalled } from "../lib/scheduler.js";
 
 interface RedeemResponse {
   token: string;
@@ -35,6 +36,17 @@ export async function setupCommand(code: string, apiUrl: string): Promise<void> 
   console.log(`\nLinked ${deviceName} to ${redeemed.username ?? "your account"}.`);
 
   const pushed = await pushCommand({}, apiUrl);
+
+  // Adding a machine means adding it for good, not once. A daily job keeps it
+  // reporting without anyone remembering to run anything.
+  if (!isInstalled()) {
+    const scheduler = installSchedule();
+    console.log(
+      scheduler
+        ? `\nDaily sync installed (${scheduler}). Turn it off with \`tokenmax auto --off\`.`
+        : "\nNo scheduler on this platform — run `tokenmax` when you want to sync.",
+    );
+  }
   if (pushed === 0) {
     // Membership is gated on a real push, so there is nothing to celebrate yet.
     console.log(

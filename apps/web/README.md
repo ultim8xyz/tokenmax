@@ -13,7 +13,7 @@ Every route except `/login` requires **membership**, not just a session — see
 | `/` | members | Leaderboard over listed members; `?w=1d\|7d\|30d` |
 | `/u/[username]` | members | 30-day bars; spend and tokens for today, 7d, and 30d |
 | `/onboarding` | signed-in | Held here until the CLI's first push lands |
-| `/settings` | members | Alias, leaderboard listing; owners also manage invites |
+| `/settings` | members | Alias, add-a-machine code; owners also let people in |
 | `/login` | anyone | GitHub sign-in, default scopes |
 | `/callback` | anyone | OAuth exchange, invite check, profile creation |
 | `/cli?code=…` | signed-in | Confirms a device code shown in the terminal |
@@ -82,6 +82,10 @@ style choice:
 - **Viewport paging** on the leaderboard is dropped; every member is shown.
 - The class label's **"Heavy"** branch needs per-model token shares, which the
   daily rollup does not carry. The other branches are intact.
+- The study routes with `<button>`; real URLs need `<a>`, so
+  `app/console-overrides.css` carries the anchor reset and the avatar rules the
+  study had no equivalent for. It is separate because `console.css` is
+  re-extracted wholesale.
 
 ## Environment
 

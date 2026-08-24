@@ -1,17 +1,14 @@
 /* The arrival, ported from the design study.
  *
- * Isolated on purpose: it is the screen the study keeps revising, so it is kept
- * behind a single entry point that the onboarding page calls and nothing else
- * touches. Re-extracting it is one script.
+ * Kept behind one entry point because it is the screen the study keeps
+ * revising; re-extracting it is a single script.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { rng } from "./art";
 
 export interface FlightOptions {
-  /** The #flight container: a canvas plus an .arrive block. */
   host: HTMLElement;
-  /** The form being pulled into the vanishing point, one child at a time. */
   form: HTMLElement;
   name: string;
   subtitle: string;

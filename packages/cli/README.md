@@ -40,12 +40,23 @@ tokenmax push --dry-run --days 7
 
 Everything else needs an instance to talk to.
 
+## Staying current
+
+`setup` installs a daily sync as well as pushing once — launchd on macOS, cron
+on Linux, nothing on Windows. Adding a machine means adding it for good, not
+once.
+
+The schedule runs `~/.tokenmax/auto-push.sh`, a three-line wrapper, so it refers
+to one stable path rather than to whatever npx resolved on the day it was
+installed. Output lands in `~/.tokenmax/auto-push.log`.
+
 ## Files it owns
 
 Both are mode `0600` inside a `0700` directory:
 
 - `~/.tokenmax/config.json` — token, username, device id and name, last push date
 - `~/.tokenmax/machine-id` — the per-machine UUID, kept across logout
+- `~/.tokenmax/auto-push.sh` and `auto-push.log` — the daily sync and its output
 
 ## Source
 

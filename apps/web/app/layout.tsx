@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./console.css";
+import "./console-overrides.css";
 import { Sky } from "./console/sky";
 
 export const metadata: Metadata = {

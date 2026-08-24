@@ -86,9 +86,15 @@ export default async function Home({
                     {String(i + 1).padStart(2, "0")}
                   </div>
                   <div className="who">
-                    <div className="nm">{m.displayName ?? m.username}</div>
-                    <div className="kl">
-                      {name} · {note}
+                    {m.avatarUrl && (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img className="pfp" src={m.avatarUrl} alt="" />
+                    )}
+                    <div style={{ minWidth: 0 }}>
+                      <div className="nm">{m.displayName ?? m.username}</div>
+                      <div className="kl">
+                        {name} · {note}
+                      </div>
                     </div>
                   </div>
                   <div className="spark">

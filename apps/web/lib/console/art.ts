@@ -1,8 +1,8 @@
 /* Procedural member art, ported verbatim from the design study.
  *
- * Every routine is seeded, so the same member draws the same world on every
- * device and every reload. Canvas work is imperative by nature; this file keeps
- * that in one place so the React side never touches a 2D context.
+ * Seeded, so the same member draws the same world on every device and reload.
+ * Canvas work is imperative by nature; keeping it here means the React side
+ * never touches a 2D context.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

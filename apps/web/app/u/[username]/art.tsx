@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { paintChart, paintWorld } from "@/lib/console/art";
-import type { DayRow } from "@/lib/console/board";
+import { denseDays, type DayRow } from "@/lib/console/board";
 
 /** The member's world. Seeded from their name, so it is theirs and it is stable. */
 export function World({ hue, seed, kind }: { hue: number; seed: number; kind: string }) {
@@ -24,7 +24,7 @@ export function SpendChart({ days }: { days: DayRow[] }) {
   useEffect(() => {
     const cv = ref.current;
     if (!cv) return;
-    const shaped = { days: days.map((d) => ({ cost: Number(d.cost_usd) })) };
+    const shaped = { days: denseDays(days) };
     const raf = requestAnimationFrame(() =>
       requestAnimationFrame(() => paintChart(cv, shaped)),
     );
