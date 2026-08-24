@@ -18,6 +18,31 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+/* The window switcher routes, so it is anchors where the study had buttons. */
+.seg a {
+  padding: clamp(5px, 0.7vh, 8px) clamp(11px, 1.2vw, 17px);
+  border-radius: 999px;
+  font-size: var(--t1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  transition: color 300ms var(--ease), background 300ms var(--ease);
+}
+.seg a[aria-pressed="true"] {
+  color: #05121a;
+  background: var(--text);
+}
+.seg a:hover {
+  color: var(--text);
+}
+
+/* One more track than the study: it had no downtime column. */
+.board {
+  --cols: clamp(42px, 4.6vw, 62px) minmax(0, 1.5fr) minmax(0, 0.85fr)
+          minmax(0, 0.62fr) minmax(0, 0.5fr) minmax(0, 0.5fr) minmax(0, 0.56fr)
+          minmax(0, 0.8fr);
+}
+
 /* A member's GitHub picture, which the study's mock had no equivalent for. */
 .pfp {
   border-radius: 50%;
@@ -39,12 +64,21 @@ button:focus-visible {
   height: clamp(26px, 2.7vh, 34px);
 }
 
+/* The card is the picture. The study drew a generated world here because its
+   mock had no faces; a real member has one, and two portraits fighting for the
+   same frame is worse than either alone. */
 .art .pfp {
   position: absolute;
-  left: clamp(14px, 1.4vw, 22px);
-  top: clamp(14px, 1.4vw, 22px);
-  width: clamp(40px, 4.6vh, 58px);
-  height: clamp(40px, 4.6vh, 58px);
-  border: 1px solid var(--stroke2);
-  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+/* The name plate has to stay legible over a photograph, not just over a dark
+   render, so the scrim reaches further up and starts sooner. */
+.art .over {
+  background: linear-gradient(transparent, rgba(3, 5, 10, 0.55) 30%, rgba(3, 5, 10, 0.94) 78%);
+  padding-top: clamp(40px, 8vh, 90px);
 }

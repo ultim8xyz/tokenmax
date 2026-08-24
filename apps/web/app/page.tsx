@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { requireMember } from "@/lib/auth";
 import { loadBoard } from "@/lib/console/load";
+import { maxDowntimeSeconds, type ActivityDay } from "@/lib/downtime";
 import {
   WINDOWS,
   classOf,
+  dur,
   parseWindow,
   sparkline,
   streakOf,
@@ -66,6 +68,7 @@ export default async function Home({
             <span className="r">Tokens</span>
             <span className="r">Field</span>
             <span className="r">Streak</span>
+            <span className="r">Quiet</span>
             <span className="r">Spend</span>
           </div>
 
@@ -105,6 +108,9 @@ export default async function Home({
                   <div className="fig dim">{toks(t.tokens)}</div>
                   <div className="fig dim">{t.peak}</div>
                   <div className="fig dim">{streakOf(m.days)}d</div>
+                  <div className="fig dim">
+                    {dur(maxDowntimeSeconds(m.days as unknown as ActivityDay[]))}
+                  </div>
                   <div className="fig spend">{usd(t.cost)}</div>
                 </HueRow>
               );

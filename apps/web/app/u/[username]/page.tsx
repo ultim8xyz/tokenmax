@@ -78,10 +78,11 @@ export default async function ProfilePage({
 
           <div className="side">
             <div className="art rise" style={{ "--i": 0 } as React.CSSProperties}>
-              <World hue={member.hue} seed={member.hue} kind={className.toLowerCase()} />
-              {member.avatarUrl && (
+              {member.avatarUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img className="pfp" src={member.avatarUrl} alt="" />
+              ) : (
+                <World hue={member.hue} seed={member.hue} kind={className.toLowerCase()} />
               )}
               <div className="over">
                 <div className="nm">{member.displayName ?? member.username}</div>
