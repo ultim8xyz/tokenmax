@@ -230,7 +230,7 @@ export function paintChart(cv: any, p: any) {
   const X = (i: number) => padX + (w - padX * 2) * (i / (days.length - 1));
   const Y = (v: number) => h - padB - (h - padT - padB) * (v / peak);
 
-  const pts: [number, number][] = days.map((d: any, i: number) => [X(i), Y(d.cost)]);
+  const pts = days.map((d: any, i: number) => [X(i), Y(d.cost)] as [number, number]);
 
   // Catmull-rom through the points, so the line has no corners.
   const path = new Path2D();

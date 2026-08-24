@@ -3,8 +3,10 @@
 Collects local agent usage and pushes the daily totals to your instance.
 
 ```sh
-TOKENMAX_API_URL=https://your-instance npx github:ultim8xyz/tokenmax-cli login
+npx github:ultim8xyz/tokenmax-cli login
 ```
+
+The instance is compiled in; `TOKENMAX_API_URL` overrides it for local work.
 
 Installed from git rather than npm: `tokenmax` on npm is an unrelated package,
 and a git install can be revoked by making the repo private. `dist/` is
@@ -24,7 +26,7 @@ This directory is mirrored to `ultim8xyz/tokenmax-cli` by
 
 Flags: `--date YYYY-MM-DD`, `--days N` (max 30), `--dry-run`, `--api-url URL`.
 
-`TOKENMAX_API_URL` sets the instance for every invocation.
+`TOKENMAX_API_URL` overrides the compiled-in instance.
 
 ## Before you have an instance
 

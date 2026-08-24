@@ -116,6 +116,7 @@ body.flying #sky { opacity: 0; }
 }
 .brand em { font-style: normal; color: hsl(var(--hue) 96% 74%); }
 
+
 .pot {
   font-family: var(--mn);
   font-size: var(--t1);
@@ -240,6 +241,31 @@ body.flying #sky { opacity: 0; }
               transform 260ms var(--ease);
 }
 .brow:hover { background: var(--glass2); border-color: var(--stroke); transform: translateX(3px); }
+
+/* Coming out of the flight the board arrives in order — rail, heading, column
+   labels — and then the rows land on top of it, one at a time, hard and
+   audible. Everything before the rows is quick and quiet so the rows are the
+   thing you notice. */
+body.boarding #shell > .rail.top { animation: dropIn 460ms cubic-bezier(0.2, 1, 0.3, 1) backwards; }
+body.boarding .shelfhead { animation: dropIn 520ms cubic-bezier(0.2, 1, 0.3, 1) 80ms backwards; }
+body.boarding .bhead { animation: dropIn 520ms cubic-bezier(0.2, 1, 0.3, 1) 160ms backwards; }
+body.boarding .pager, body.boarding .hints {
+  animation: dropIn 520ms cubic-bezier(0.2, 1, 0.3, 1) 940ms backwards;
+}
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-14px); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+.brow.slam {
+  animation: slam 300ms cubic-bezier(0.2, 1.5, 0.4, 1) backwards;
+  animation-delay: calc(250ms + var(--n, 0) * 52ms);
+}
+@keyframes slam {
+  from { opacity: 0; transform: translateX(-52px) scaleX(0.93); }
+  62%  { opacity: 1; }
+  to   { opacity: 1; transform: none; }
+}
 .brow.sel {
   background: hsl(var(--th) 96% 58% / 0.12);
   border-color: hsl(var(--th) 96% 68% / 0.4);
@@ -538,7 +564,10 @@ body.onboarding .pot { visibility: hidden; }
    control you just pressed leading. Ease-in, because being pulled in
    accelerates. */
 #obwrap > .suck {
-  animation: suck 980ms cubic-bezier(0.72, 0, 0.97, 0.22) forwards !important;
+  animation-name: suck !important;
+  animation-duration: var(--sd, 980ms) !important;
+  animation-timing-function: var(--se, cubic-bezier(0.72, 0, 0.97, 0.22)) !important;
+  animation-fill-mode: forwards !important;
   will-change: transform, opacity, filter;
 }
 @keyframes suck {
@@ -546,8 +575,8 @@ body.onboarding .pot { visibility: hidden; }
   55%  { opacity: 0.92; }
   100% {
     opacity: 0;
-    transform: translate(var(--dx, 0px), var(--dy, 0px)) scale(0.03);
-    filter: blur(10px);
+    transform: translate(var(--dx, 0px), var(--dy, 0px)) scale(var(--ss, 0.03));
+    filter: blur(var(--sb, 10px));
   }
 }
 #flight.landed { background: #04070e; }
@@ -555,7 +584,10 @@ body.onboarding .pot { visibility: hidden; }
   position: absolute; inset: 0; width: 100%; height: 100%;
   transition: opacity 1100ms var(--ease), filter 1100ms var(--ease);
 }
-#flight.landed canvas { opacity: 0.16; }
+/* The tunnel keeps running behind the welcome. Dimming it to a ghost was what
+   made the arrival read as a freeze — it stops being a place you are and
+   becomes a texture. */
+#flight.landed canvas { opacity: 0.72; }
 #flight .arrive::before {
   content: "";
   position: absolute; inset: 0;

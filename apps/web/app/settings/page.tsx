@@ -49,11 +49,7 @@ export default async function SettingsPage() {
                 summed across them and a re-push replaces only that machine&apos;s row.
               </div>
               <div className="cmd" style={{ marginTop: 12 }}>
-                <code>
-                  {process.env.NEXT_PUBLIC_SITE_URL
-                    ? `TOKENMAX_API_URL=${process.env.NEXT_PUBLIC_SITE_URL} ${installCommand()}`
-                    : installCommand()}
-                </code>
+                <code>{installCommand()}</code>
               </div>
             </div>
 

@@ -67,6 +67,10 @@ reports tomorrow's date, and an upper bound would silently drop it.
 npx github:ultim8xyz/tokenmax-cli login
 ```
 
+No URL to supply: the instance is compiled into the CLI
+(`packages/cli/src/config.ts`). `TOKENMAX_API_URL` still overrides it, which is
+what local development uses.
+
 From git, not npm. Two reasons: `tokenmax` on npm belongs to an unrelated
 package, so `npx tokenmax` would run a stranger's code; and anything published
 to a public registry cannot be reliably withdrawn, while making a repo private

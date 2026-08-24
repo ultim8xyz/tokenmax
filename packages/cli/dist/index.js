@@ -10,7 +10,8 @@ var FILE_MODE = 384;
 var CONFIG_DIR = join(homedir(), ".tokenmax");
 var CONFIG_FILE = join(CONFIG_DIR, "config.json");
 var MACHINE_ID_FILE = join(CONFIG_DIR, "machine-id");
-var DEFAULT_API_URL = process.env.TOKENMAX_API_URL ?? "http://localhost:3000";
+var INSTANCE_URL = "https://tokenmax-app.vercel.app";
+var DEFAULT_API_URL = process.env.TOKENMAX_API_URL ?? INSTANCE_URL;
 function ensureDir() {
   if (!existsSync(CONFIG_DIR)) mkdirSync(CONFIG_DIR, { recursive: true, mode: DIR_MODE });
 }

@@ -17,7 +17,6 @@ export default async function OnboardingPage() {
       <ConnectMachine
         handle={member.username}
         displayName={member.displayName}
-        apiUrl={process.env.NEXT_PUBLIC_SITE_URL ?? ""}
         hue={hueFor(member.username)}
       />
     </PlainShell>

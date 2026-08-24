@@ -5,6 +5,8 @@ import { Sky } from "./console/sky";
 export const metadata: Metadata = {
   title: "tokenmax",
   description: "Your own agent-usage tracker.",
+  // app/icon.svg is picked up by file convention; naming it here would only
+  // give Next two sources of truth for the same tag.
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

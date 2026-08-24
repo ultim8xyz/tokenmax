@@ -10,8 +10,14 @@ export const CONFIG_DIR = join(homedir(), ".tokenmax");
 export const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 export const MACHINE_ID_FILE = join(CONFIG_DIR, "machine-id");
 
-export const DEFAULT_API_URL =
-  process.env.TOKENMAX_API_URL ?? "http://localhost:3000";
+/** The instance this CLI belongs to.
+ *
+ * Baked in rather than asked for: someone running the onboarding command should
+ * not have to know a URL. TOKENMAX_API_URL still overrides it, which is what
+ * local development uses. */
+export const INSTANCE_URL = "https://tokenmax-app.vercel.app";
+
+export const DEFAULT_API_URL = process.env.TOKENMAX_API_URL ?? INSTANCE_URL;
 
 export interface Config {
   token: string;

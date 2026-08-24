@@ -15,12 +15,10 @@ interface Device {
 export function ConnectMachine({
   handle,
   displayName,
-  apiUrl,
   hue,
 }: {
   handle: string;
   displayName: string | null;
-  apiUrl: string;
   hue: number;
 }) {
   const router = useRouter();
@@ -32,8 +30,8 @@ export function ConnectMachine({
   const [connected, setConnected] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // The instance is compiled into the CLI, so the command is the command.
   const command = installCommand("login");
-  const withUrl = apiUrl ? `TOKENMAX_API_URL=${apiUrl} ${command}` : command;
 
   useEffect(() => {
     let live = true;
@@ -64,7 +62,7 @@ export function ConnectMachine({
   }
 
   async function copy() {
-    await navigator.clipboard?.writeText(withUrl).catch(() => {});
+    await navigator.clipboard?.writeText(command).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   }
@@ -120,7 +118,7 @@ export function ConnectMachine({
         </div>
 
         <div className="cmd rise" style={style(4)}>
-          <code>{withUrl}</code>
+          <code>{command}</code>
           <button onClick={copy}>{copied ? "Copied" : "Copy"}</button>
         </div>
 

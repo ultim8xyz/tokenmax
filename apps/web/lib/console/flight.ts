@@ -1,8 +1,8 @@
 /* The arrival, ported from the design study.
  *
- * Isolated on purpose: it is the one screen still being iterated on, so it is
- * kept behind a single entry point that the onboarding page calls and nothing
- * else touches.
+ * Isolated on purpose: it is the screen the study keeps revising, so it is kept
+ * behind a single entry point that the onboarding page calls and nothing else
+ * touches. Re-extracting it is one script.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -11,7 +11,7 @@ import { rng } from "./art";
 export interface FlightOptions {
   /** The #flight container: a canvas plus an .arrive block. */
   host: HTMLElement;
-  /** The form being sucked into the vanishing point, one child at a time. */
+  /** The form being pulled into the vanishing point, one child at a time. */
   form: HTMLElement;
   name: string;
   subtitle: string;
@@ -70,14 +70,14 @@ export function runFlight(opts: FlightOptions) {
   schedule(() => host.classList.add("lit"));
 
   let landed = false;
+  const welcomeEl = host.querySelector("h2");
+  const subEl = host.querySelector("p");
   const land = () => {
     if (landed) return;
     landed = true;
     // The app stays unrendered behind this. It appears when Enter is pressed.
-    const welcome = host.querySelector("h2");
-    const sub = host.querySelector("p");
-    if (welcome) welcome.textContent = `Welcome, ${opts.name}`;
-    if (sub) sub.textContent = opts.subtitle;
+    if (welcomeEl) welcomeEl.textContent = `Welcome, ${opts.name}`;
+    if (subEl) subEl.textContent = opts.subtitle;
     host.classList.add("over", "landed");
     shell.classList.add("gone");
     const arrive = host.querySelector(".arrive");
@@ -137,14 +137,39 @@ export function runFlight(opts: FlightOptions) {
     s: 10 + rand() * 22,
   }));
 
-  // gather · the fields go, one at a time · the pull · the arrival
+  // gather · the fields go, one at a time, while the pull is already on · arrival
   const GATHER = 1100;
   const kids = [...wrap.children] as HTMLElement[];
   const EXIT_STEP = 190;                 // one at a time, and unhurried
-  const EXIT_END = GATHER + (kids.length - 1) * EXIT_STEP + 980;
+
+  // Each field is given mass. A big control is heavy: it takes longer to let go
+  // of, it leans in early and arrives late, and it lands nearer the mouth. A
+  // small label is light: it hangs, then snaps. One duration and one curve for
+  // all seven read as seven copies of the same event, which is what a vacuum is
+  // not.
+  const EASES = [
+    "cubic-bezier(0.88, 0, 1, 0.18)",     // light — hangs, then goes all at once
+    "cubic-bezier(0.72, 0, 0.97, 0.22)",
+    "cubic-bezier(0.46, 0, 0.82, 0.38)",  // heavy — leans in early, arrives late
+  ];
+  const boxes = kids.map((k) => k.getBoundingClientRect());
+  const areas = boxes.map((r) => r.width * r.height);
+  const aLo = Math.min(...areas), aHi = Math.max(...areas);
+  let at = 0;
+  const plan = kids.map((k, i) => {
+    const m = aHi - aLo < 1 ? 0.5 : (areas[i] - aLo) / (aHi - aLo);   // 0 light … 1 heavy
+    const step = { at, m, dur: Math.round(700 + m * 660), ease: EASES[m < 0.34 ? 0 : m < 0.7 ? 1 : 2] };
+    at += Math.round(EXIT_STEP * (0.68 + m * 0.72));
+    return step;
+  });
+  const EXIT_END = GATHER + Math.max(...plan.map((q) => q.at + q.dur));
+
+  // The pull starts while the fields are still going, not after them. Waiting
+  // for an empty screen is what made the two halves read as two events.
+  const MOVE_AT = GATHER + 230;
   const TRAVEL = 5600;                   // the tunnel is built; now go through it
   const COAST = 3200;                    // and then you coast, you do not stop
-  const DUR = EXIT_END + TRAVEL;
+  const DUR = MOVE_AT + TRAVEL;
 
   const t0 = performance.now();
   let prev = t0, travelled = 0, roll = 0, drew = false, queued = false;
@@ -160,21 +185,27 @@ export function runFlight(opts: FlightOptions) {
     const t = Math.min(1, ms / DUR);
     const g = smooth(Math.min(1, ms / GATHER));
 
-    // One element leaves per beat, in the order they were read.
+    // One element leaves per beat, in the order they were read, each on its own
+    // clock.
     if (!queued && ms > GATHER) {
       queued = true;
       kids.forEach((k, i) => setTimeout(() => {
-        // Measured now, because the vanishing point is where the tunnel is.
-        const r = k.getBoundingClientRect();
+        const q = plan[i], r = boxes[i];
         k.style.setProperty("--dx", `${Math.round(W / 2 - (r.left + r.width / 2))}px`);
         k.style.setProperty("--dy", `${Math.round(H / 2 - (r.top + r.height / 2))}px`);
+        k.style.setProperty("--sd", `${q.dur}ms`);
+        k.style.setProperty("--se", q.ease);
+        // Heavy things do not shrink to nothing, they are still readable when
+        // they reach the mouth; light things go to a speck and smear.
+        k.style.setProperty("--ss", (0.02 + q.m * 0.07).toFixed(3));
+        k.style.setProperty("--sb", `${(13 - q.m * 7).toFixed(1)}px`);
         k.classList.add("suck");
-      }, i * EXIT_STEP));
+      }, plan[i].at));
       setTimeout(() => { host.classList.add("over"); shell.classList.add("gone"); }, EXIT_END - GATHER);
     }
 
     // Movement starts once the page has been emptied.
-    const pull = Math.max(0, (ms - EXIT_END) / TRAVEL);
+    const pull = Math.max(0, (ms - MOVE_AT) / TRAVEL);
     const p = Math.min(1, pull);
     // Leaves at a walk, ends at a sprint. Nothing about the first second should
     // look like the last.
@@ -263,9 +294,9 @@ export function runFlight(opts: FlightOptions) {
     schedule(guarded);
   };
 
-  // A throw mid-flight must still land the visitor; a frozen tunnel is worse
-  // than an abrupt arrival.
   const guarded = (now: number) => {
+    // A throw mid-flight must still land the visitor; a frozen tunnel is worse
+    // than an abrupt arrival.
     try {
       frame(now);
     } catch {
