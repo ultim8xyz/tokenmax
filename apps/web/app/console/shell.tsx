@@ -69,7 +69,9 @@ export function Shell({ active, pot, members, hints, me, children }: Props) {
 
       <main id="stage">{children}</main>
 
-      <div className="hints">{hints}</div>
+      {/* #shell's third grid row is `auto`, so an empty band still claimed its
+          own padding at the foot of every page. Nothing passes hints today. */}
+      {hints ? <div className="hints">{hints}</div> : null}
     </div>
   );
 }
@@ -84,7 +86,6 @@ export function PlainShell({ children }: { children: React.ReactNode }) {
         </Link>
       </header>
       <main id="stage">{children}</main>
-      <div className="hints" />
     </div>
   );
 }
