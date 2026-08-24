@@ -6,7 +6,6 @@ import {
   classOf,
   costPerKiloLine,
   dur,
-  toks as toksFmt,
   streakOf,
   toks,
   total,
@@ -170,7 +169,7 @@ export default async function ProfilePage({
                 n="what output costs"
                 hi
               />
-              <Big k="Lines written" v={toksFmt(t.linesAdded)} n="added, agent-assisted" />
+              <Big k="Lines written" v={toks(t.linesAdded)} n="added, agent-assisted" />
               <Big k="Commits" v={String(t.commits)} n="carrying a Claude trailer" />
               <Big k="Projects" v={String(t.projects)} n="busiest day" />
             </div>
