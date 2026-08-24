@@ -1,4 +1,4 @@
-import { requireMember } from "@/lib/auth";
+import { requireAnyMember } from "@/lib/auth";
 import { PlainShell } from "../console/shell";
 import { ApproveForm } from "./approve-form";
 
@@ -10,7 +10,7 @@ export default async function CliPage({
   searchParams: Promise<{ code?: string }>;
 }) {
   const { code = "" } = await searchParams;
-  await requireMember(`/cli?code=${code}`);
+  await requireAnyMember(`/cli?code=${code}`);
 
   return (
     <PlainShell>

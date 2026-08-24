@@ -16,14 +16,16 @@ Every route except `/login` requires **membership**, not just a session — see
 | `/settings` | members | Alias, leaderboard listing; owners also manage invites |
 | `/login` | anyone | GitHub sign-in, default scopes |
 | `/callback` | anyone | OAuth exchange, invite check, profile creation |
-| `/cli?code=…` | members | Confirms a device code shown in the terminal |
+| `/cli?code=…` | signed-in | Confirms a device code shown in the terminal |
 | `/robots.txt` | anyone | Disallows everything |
 
 ## API
 
 | Route | Auth | Purpose |
 |---|---|---|
-| `POST /api/auth/cli/init` | none | Issues a device code and poll secret |
+| `POST /api/auth/cli/enroll` | session cookie | Mints a single-use enrolment code for the onboarding command |
+| `POST /api/auth/cli/redeem` | enrolment code | Exchanges it for a CLI token |
+| `POST /api/auth/cli/init` | none | Issues a device code and poll secret (the type-it-in flow) |
 | `POST /api/auth/cli/verify` | session cookie | Approves a code as the signed-in user |
 | `POST /api/auth/cli/poll` | poll secret | Redeems an approved code for a CLI token |
 | `POST /api/usage/submit` | CLI bearer | Upserts this device's rows for each day |

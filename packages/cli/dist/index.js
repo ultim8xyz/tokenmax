@@ -479,7 +479,7 @@ async function pushCommand(options, apiUrl) {
   const entries = mergeByDate(usage, sessions);
   if (entries.length === 0) {
     console.log(`No usage found between ${since} and ${until}.`);
-    return;
+    return 0;
   }
   if (options.dryRun) {
     console.log(`
@@ -493,7 +493,7 @@ Would submit ${entries.length} day(s) as ${identity.device_name}:`);
     console.log(
       config ? "\n(dry run \u2014 nothing submitted)" : "\n(dry run \u2014 not signed in, nothing submitted)"
     );
-    return;
+    return entries.length;
   }
   const device = identity.device_id || getMachineId();
   const response = await apiRequest(apiUrl, identity, "/api/usage/submit", {
@@ -517,6 +517,36 @@ Synced ${response.accepted} day(s) from ${identity.device_name}:`);
       `  ${"all".padEnd(20)} ${formatUsd(response.totals.cost_usd)} (${formatTokens(response.totals.total_tokens)} tokens)`
     );
   }
+  return response.accepted;
+}
+
+// src/commands/setup.ts
+async function setupCommand(code, apiUrl) {
+  if (!code) {
+    throw new Error("Usage: tokenmax setup <code>  \u2014 copy the command from your onboarding page.");
+  }
+  const deviceName = getDeviceName();
+  const redeemed = await apiRequestNoAuth(apiUrl, "/api/auth/cli/redeem", {
+    method: "POST",
+    body: JSON.stringify({ code })
+  });
+  saveConfig({
+    ...loadConfig(),
+    token: redeemed.token,
+    username: redeemed.username,
+    device_id: getMachineId(),
+    device_name: deviceName
+  });
+  console.log(`
+Linked ${deviceName} to ${redeemed.username ?? "your account"}.`);
+  const pushed = await pushCommand({}, apiUrl);
+  if (pushed === 0) {
+    console.log(
+      "\nThis machine is linked, but it has no agent usage to report yet.\nUse Claude Code or Codex here, then run `tokenmax` again."
+    );
+    return;
+  }
+  console.log("\nYour onboarding page has already noticed. You can go back to it.");
 }
 
 // src/commands/status.ts
@@ -577,7 +607,8 @@ var HELP = `tokenmax \u2014 push AI coding-agent usage to your own instance
 
 Usage
   tokenmax                 Sign in if needed, then sync everything since the last push
-  tokenmax login           Authenticate this device in the browser
+  tokenmax setup <code>    Link this machine using the code from your onboarding page
+  tokenmax login           Authenticate this device in the browser instead
   tokenmax push [options]  Push usage
   tokenmax status          Streak, weekly spend, rank, and per-device split
 
@@ -594,25 +625,30 @@ across devices and a re-push from one device replaces only its own row.
 function parseArgs(argv) {
   const options = { dryRun: false, apiUrl: DEFAULT_API_URL, help: false };
   let command;
+  let arg;
   for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (arg === void 0) continue;
-    if (arg === "--help" || arg === "-h") options.help = true;
-    else if (arg === "--dry-run") options.dryRun = true;
-    else if (arg === "--date") options.date = argv[++i];
-    else if (arg === "--days") options.days = Number(argv[++i]);
-    else if (arg === "--api-url") options.apiUrl = argv[++i] ?? options.apiUrl;
-    else if (!arg.startsWith("-") && command === void 0) command = arg;
+    const token = argv[i];
+    if (token === void 0) continue;
+    if (token === "--help" || token === "-h") options.help = true;
+    else if (token === "--dry-run") options.dryRun = true;
+    else if (token === "--date") options.date = argv[++i];
+    else if (token === "--days") options.days = Number(argv[++i]);
+    else if (token === "--api-url") options.apiUrl = argv[++i] ?? options.apiUrl;
+    else if (!token.startsWith("-") && command === void 0) command = token;
+    else if (!token.startsWith("-") && arg === void 0) arg = token;
   }
-  return { command, options };
+  return { command, arg, options };
 }
 async function main() {
-  const { command, options } = parseArgs(process.argv.slice(2));
+  const { command, arg, options } = parseArgs(process.argv.slice(2));
   if (options.help || command === "help") {
     console.log(HELP);
     return;
   }
   switch (command) {
+    case "setup":
+      await setupCommand(arg ?? "", options.apiUrl);
+      return;
     case "login":
       await loginCommand(options.apiUrl);
       return;

@@ -64,8 +64,15 @@ reports tomorrow's date, and an upper bound would silently drop it.
 ## How the CLI is installed
 
 ```sh
-npx github:ultim8xyz/tokenmax-cli login
+npx github:ultim8xyz/tokenmax-cli setup <code>
 ```
+
+The onboarding page mints the code and prints the whole command. Running it
+links the machine and pushes in one step — no second browser trip, because the
+page has already proved who you are. The code is single-use and expires in 30
+minutes.
+
+`tokenmax login` still exists for the type-the-code-in-a-browser flow.
 
 No URL to supply: the instance is compiled into the CLI
 (`packages/cli/src/config.ts`). `TOKENMAX_API_URL` still overrides it, which is

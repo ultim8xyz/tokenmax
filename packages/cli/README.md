@@ -3,7 +3,7 @@
 Collects local agent usage and pushes the daily totals to your instance.
 
 ```sh
-npx github:ultim8xyz/tokenmax-cli login
+npx github:ultim8xyz/tokenmax-cli setup <code>
 ```
 
 The instance is compiled in; `TOKENMAX_API_URL` overrides it for local work.
@@ -20,7 +20,8 @@ This directory is mirrored to `ultim8xyz/tokenmax-cli` by
 | Command | What it does |
 |---|---|
 | `tokenmax` | Logs in if needed, then pushes everything since the last sync |
-| `tokenmax login` | Authenticates this device in the browser |
+| `tokenmax setup <code>` | Links this machine from the onboarding page's code, then pushes |
+| `tokenmax login` | Authenticates this device in the browser instead |
 | `tokenmax push` | Pushes usage; see the flags below |
 | `tokenmax status` | Streak; spend, tokens and rank for today / 7d / 30d; per-device split |
 

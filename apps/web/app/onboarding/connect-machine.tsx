@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { installCommand } from "@/lib/console/cli";
+import { CLI_SOURCE } from "@/lib/console/cli";
+import { usd } from "@/lib/console/board";
+import { verdictFor } from "@/lib/console/verdict";
 import { runFlight } from "@/lib/console/flight";
 import { Flight } from "./flight";
 
@@ -10,6 +12,12 @@ const POLL_MS = 4000;
 
 interface Device {
   name: string;
+}
+
+interface Status {
+  onboarded: boolean;
+  devices: Device[];
+  week: { cost_usd: number; total_tokens: number };
 }
 
 export function ConnectMachine({
@@ -28,19 +36,36 @@ export function ConnectMachine({
   const [saved, setSaved] = useState(displayName ?? "");
   const [devices, setDevices] = useState<Device[]>([]);
   const [connected, setConnected] = useState(false);
+  const [week, setWeek] = useState(0);
+  const [code, setCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // The instance is compiled into the CLI, so the command is the command.
-  const command = installCommand("login");
+  // The code is minted here, so running it needs no second browser trip: this
+  // page has already proved who you are.
+  useEffect(() => {
+    let live = true;
+    fetch("/api/auth/cli/enroll", { method: "POST" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b) => {
+        if (live && b?.code) setCode(b.code as string);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const command = code ? `npx ${CLI_SOURCE} setup ${code}` : `npx ${CLI_SOURCE} setup …`;
 
   useEffect(() => {
     let live = true;
     async function poll() {
       const res = await fetch("/api/onboarding/status", { cache: "no-store" });
       if (!res.ok || !live) return;
-      const body = (await res.json()) as { onboarded: boolean; devices: Device[] };
+      const body = (await res.json()) as Status;
       setDevices(body.devices);
       setConnected(body.onboarded);
+      setWeek(body.week.cost_usd);
     }
     poll();
     const timer = setInterval(poll, POLL_MS);
@@ -62,6 +87,7 @@ export function ConnectMachine({
   }
 
   async function copy() {
+    if (!code) return;
     await navigator.clipboard?.writeText(command).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
@@ -100,7 +126,8 @@ export function ConnectMachine({
           Connect a machine
         </h2>
         <p className="rise" style={style(2)}>
-          Signed in as @{handle}. Run this where you code — on every machine you code on.
+          Signed in as @{handle}. Paste this where you code — no second sign-in, it links the
+          machine and pushes in one go.
         </p>
 
         <div className="field rise" style={style(3)}>
@@ -119,7 +146,9 @@ export function ConnectMachine({
 
         <div className="cmd rise" style={style(4)}>
           <code>{command}</code>
-          <button onClick={copy}>{copied ? "Copied" : "Copy"}</button>
+          <button onClick={copy} disabled={!code}>
+            {copied ? "Copied" : "Copy"}
+          </button>
         </div>
 
         <div className={`wait rise${connected ? " done" : ""}`} style={style(5)}>
@@ -127,12 +156,9 @@ export function ConnectMachine({
           <span>
             {connected ? (
               <>
-                Connected — <b>{devices.map((d) => d.name).join(", ")}</b> reported in
-              </>
-            ) : devices.length > 0 ? (
-              <>
-                <b>{devices.map((d) => d.name).join(", ")}</b> signed in — waiting for the
-                first push…
+                Push received from <b>{devices.map((d) => d.name).join(", ")}</b> — stats
+                compiled. <b>{usd(week)}</b> in the past 7 days.{" "}
+                {verdictFor(week).headline}
               </>
             ) : (
               "Waiting for your first push…"

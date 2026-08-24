@@ -1,13 +1,15 @@
 import { DEFAULT_API_URL, loadConfig } from "./config.js";
 import { loginCommand } from "./commands/login.js";
 import { pushCommand } from "./commands/push.js";
+import { setupCommand } from "./commands/setup.js";
 import { statusCommand } from "./commands/status.js";
 
 const HELP = `tokenmax — push AI coding-agent usage to your own instance
 
 Usage
   tokenmax                 Sign in if needed, then sync everything since the last push
-  tokenmax login           Authenticate this device in the browser
+  tokenmax setup <code>    Link this machine using the code from your onboarding page
+  tokenmax login           Authenticate this device in the browser instead
   tokenmax push [options]  Push usage
   tokenmax status          Streak, weekly spend, rank, and per-device split
 
@@ -30,27 +32,33 @@ interface Options {
   help: boolean;
 }
 
-function parseArgs(argv: string[]): { command: string | undefined; options: Options } {
+function parseArgs(argv: string[]): {
+  command: string | undefined;
+  arg: string | undefined;
+  options: Options;
+} {
   const options: Options = { dryRun: false, apiUrl: DEFAULT_API_URL, help: false };
   let command: string | undefined;
+  let arg: string | undefined;
 
   for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (arg === undefined) continue;
+    const token = argv[i];
+    if (token === undefined) continue;
 
-    if (arg === "--help" || arg === "-h") options.help = true;
-    else if (arg === "--dry-run") options.dryRun = true;
-    else if (arg === "--date") options.date = argv[++i];
-    else if (arg === "--days") options.days = Number(argv[++i]);
-    else if (arg === "--api-url") options.apiUrl = argv[++i] ?? options.apiUrl;
-    else if (!arg.startsWith("-") && command === undefined) command = arg;
+    if (token === "--help" || token === "-h") options.help = true;
+    else if (token === "--dry-run") options.dryRun = true;
+    else if (token === "--date") options.date = argv[++i];
+    else if (token === "--days") options.days = Number(argv[++i]);
+    else if (token === "--api-url") options.apiUrl = argv[++i] ?? options.apiUrl;
+    else if (!token.startsWith("-") && command === undefined) command = token;
+    else if (!token.startsWith("-") && arg === undefined) arg = token;
   }
 
-  return { command, options };
+  return { command, arg, options };
 }
 
 async function main(): Promise<void> {
-  const { command, options } = parseArgs(process.argv.slice(2));
+  const { command, arg, options } = parseArgs(process.argv.slice(2));
 
   if (options.help || command === "help") {
     console.log(HELP);
@@ -58,6 +66,9 @@ async function main(): Promise<void> {
   }
 
   switch (command) {
+    case "setup":
+      await setupCommand(arg ?? "", options.apiUrl);
+      return;
     case "login":
       await loginCommand(options.apiUrl);
       return;

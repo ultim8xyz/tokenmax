@@ -135,7 +135,8 @@ function printEntries(entries: Entry[]): void {
   }
 }
 
-export async function pushCommand(options: PushOptions, apiUrl: string): Promise<void> {
+/** Returns the number of days submitted; 0 when there was nothing to send. */
+export async function pushCommand(options: PushOptions, apiUrl: string): Promise<number> {
   const config = loadConfig();
   // A dry run touches nothing but local files, so it works before you have an
   // instance to sign in to.
@@ -158,7 +159,7 @@ export async function pushCommand(options: PushOptions, apiUrl: string): Promise
 
   if (entries.length === 0) {
     console.log(`No usage found between ${since} and ${until}.`);
-    return;
+    return 0;
   }
 
   if (options.dryRun) {
@@ -173,7 +174,7 @@ export async function pushCommand(options: PushOptions, apiUrl: string): Promise
     console.log(
       config ? "\n(dry run — nothing submitted)" : "\n(dry run — not signed in, nothing submitted)",
     );
-    return;
+    return entries.length;
   }
 
   const device = identity.device_id || getMachineId();
@@ -201,4 +202,6 @@ export async function pushCommand(options: PushOptions, apiUrl: string): Promise
         `(${formatTokens(response.totals.total_tokens)} tokens)`,
     );
   }
+
+  return response.accepted;
 }
