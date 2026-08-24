@@ -127,17 +127,14 @@ export default async function ProfilePage({
               )}
             </div>
 
-            <div className="duo rise" style={{ "--i": 3 } as React.CSSProperties}>
-              <div className="big">
-                <div className="k">Machines</div>
-                <div className="v">{member.devices.length}</div>
-                <div className="n">reporting</div>
-              </div>
-              <div className="big">
-                <div className="k">Longest quiet</div>
-                <div className="v">{dur(quiet)}</div>
-                <div className="n">between turns</div>
-              </div>
+            {/* Machines used to be repeated here beside Longest quiet, and the
+                pair was hidden below 980px — so the duplicate showed only where
+                the original already was, and the one stat with nowhere else to
+                live disappeared on a phone. */}
+            <div className="big rise" style={{ "--i": 3 } as React.CSSProperties}>
+              <div className="k">Longest quiet</div>
+              <div className="v">{dur(quiet)}</div>
+              <div className="n">between turns</div>
             </div>
           </div>
 
@@ -189,10 +186,10 @@ export default async function ProfilePage({
                   {member.mix.slice(0, 3).map(([model, tokens], i) => (
                     <div className={`mixrow ${["a", "b", "c"][i]}`} key={model}>
                       <span className="m">{model}</span>
-                      <span className="tr">
-                        <i style={{ width: `${(tokens / Math.max(1, mixTotal)) * 100}%` }} />
+                      <span className="track">
+                        <span style={{ width: `${(tokens / Math.max(1, mixTotal)) * 100}%` }} />
                       </span>
-                      <span className="fr">
+                      <span className="p">
                         {Math.round((tokens / Math.max(1, mixTotal)) * 100)}%
                       </span>
                     </div>
