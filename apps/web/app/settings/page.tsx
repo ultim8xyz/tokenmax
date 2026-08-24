@@ -1,7 +1,5 @@
 import { requireMember } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/service";
-import { loadBoard } from "@/lib/console/load";
-import { total, usd0 } from "@/lib/console/board";
 import { Shell } from "../console/shell";
 import { AliasRow, InviteRow, MachineRow } from "./controls";
 
@@ -11,21 +9,19 @@ export default async function SettingsPage() {
   const member = await requireMember("/settings");
   const service = getServiceClient();
 
-  const { data: invites } =
+  // Settings shows no numbers, so it does not read the board. Loading it here
+  // cost two more round trips on a page that displays neither.
+  const [{ data: invites }, { data: members }] = await Promise.all([
     member.role === "owner"
-      ? await service.from("invites").select("github_login").order("created_at")
-      : { data: null };
-
-  const { data: members } =
+      ? service.from("invites").select("github_login").order("created_at")
+      : Promise.resolve({ data: null }),
     member.role === "owner"
-      ? await service.from("profiles").select("username, role, onboarded_at").order("created_at")
-      : { data: null };
-
-  const board = await loadBoard();
-  const pot = usd0(board.reduce((a, m) => a + total(m.days).cost, 0));
+      ? service.from("profiles").select("username, role, onboarded_at").order("created_at")
+      : Promise.resolve({ data: null }),
+  ]);
 
   return (
-    <Shell active="/settings" pot={pot} members={board.length}>
+    <Shell active="/settings">
       <section className="view on" id="settings">
         <div className="setwrap">
           <div className="rows rise" style={{ "--i": 0 } as React.CSSProperties}>
