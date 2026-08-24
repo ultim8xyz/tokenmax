@@ -31,10 +31,7 @@ export function Shell({ active, pot, members, hints, me, children }: Props) {
             {pot === undefined ? (
               "—"
             ) : (
-              <Rolling
-                value={pot}
-                format={(n) => "$" + Math.round(n).toLocaleString("en-US")}
-              />
+              <Rolling value={pot} format="usd0" />
             )}
           </b>
           &nbsp;/&nbsp; <b>{members ?? "—"}</b> MEMBERS

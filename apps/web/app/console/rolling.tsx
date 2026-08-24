@@ -10,13 +10,22 @@ const DURATION_MS = 700;
  * Only on change: the first render paints the value it was given, so a page
  * never counts up from zero on arrival. Reduced motion gets the number.
  */
+/** Formatters live here by name: a function cannot cross from a server
+ *  component into a client one, and passing one threw the whole render. */
+const FORMATS = {
+  usd0: (n: number) => "$" + Math.round(n).toLocaleString("en-US"),
+  usd: (n: number) =>
+    "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+  count: (n: number) => String(Math.round(n)),
+} as const;
+
 export function Rolling({
   value,
-  format,
+  format = "usd0",
   className,
 }: {
   value: number;
-  format: (n: number) => string;
+  format?: keyof typeof FORMATS;
   className?: string;
 }) {
   const [shown, setShown] = useState(value);
@@ -46,5 +55,5 @@ export function Rolling({
     return () => cancelAnimationFrame(raf.current);
   }, [value]);
 
-  return <span className={className}>{format(shown)}</span>;
+  return <span className={className}>{FORMATS[format](shown)}</span>;
 }
