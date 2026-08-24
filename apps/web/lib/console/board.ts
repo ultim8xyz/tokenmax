@@ -166,4 +166,8 @@ export function costPerKiloLine(cost: number, linesAdded: number): number | null
   return linesAdded > 0 ? (cost / linesAdded) * PER_LINES : null;
 }
 
-export const dur = (s: number) => (s >= 3600 ? (s / 3600).toFixed(1) + "h" : Math.round(s / 60) + "m");
+/** A quiet stretch can run to days, and "126.4h" reads as a broken number. */
+export const dur = (s: number) =>
+  s >= 86_400 ? (s / 86_400).toFixed(1) + "d"
+  : s >= 3_600 ? (s / 3_600).toFixed(1) + "h"
+  : Math.round(s / 60) + "m";
