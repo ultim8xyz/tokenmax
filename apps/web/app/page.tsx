@@ -5,6 +5,7 @@ import { maxDowntimeSeconds, type ActivityDay } from "@/lib/downtime";
 import {
   WINDOWS,
   classOf,
+  costPerKiloLine,
   dur,
   parseWindow,
   sparkline,
@@ -69,6 +70,7 @@ export default async function Home({
             <span className="r">Field</span>
             <span className="r">Streak</span>
             <span className="r">Quiet</span>
+            <span className="r">$/1k ln</span>
             <span className="r">Spend</span>
           </div>
 
@@ -110,6 +112,12 @@ export default async function Home({
                   <div className="fig dim">{streakOf(m.days)}d</div>
                   <div className="fig dim">
                     {dur(maxDowntimeSeconds(m.days as unknown as ActivityDay[]))}
+                  </div>
+                  <div className="fig dim">
+                    {(() => {
+                      const rate = costPerKiloLine(t.cost, t.linesAdded);
+                      return rate === null ? "—" : usd(rate);
+                    })()}
                   </div>
                   <div className="fig spend">{usd(t.cost)}</div>
                 </HueRow>

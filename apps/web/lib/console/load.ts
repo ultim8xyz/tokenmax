@@ -4,7 +4,7 @@ import { isoDate, shiftDays } from "@/lib/streak";
 import { hueFor, type DayRow, type MemberRow } from "@/lib/console/board";
 
 const DAILY_COLUMNS =
-  "user_id, usage_date, cost_usd, total_tokens, sessions, interactive_sessions, projects, max_concurrent_sessions, device_count, max_gap_seconds";
+  "user_id, usage_date, cost_usd, total_tokens, sessions, interactive_sessions, projects, max_concurrent_sessions, device_count, max_gap_seconds, lines_added, lines_removed, commits";
 
 /**
  * Every listed, onboarded member with their last 30 days.

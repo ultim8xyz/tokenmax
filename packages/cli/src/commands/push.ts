@@ -1,6 +1,7 @@
 import { apiRequest } from "../lib/api.js";
 import { collectDaily, type DailyEntry } from "../lib/ccusage.js";
-import { collectSessions, type SessionStats } from "../lib/sessions.js";
+import { collectTurns, summarize, type SessionStats } from "../lib/sessions.js";
+import { authorEmail, collectLines, reposFrom, type DayLines } from "../lib/git.js";
 import { getDeviceName, getMachineId, loadConfig, saveConfig, type Config } from "../config.js";
 
 const MAX_BACKFILL_DAYS = 30;
@@ -12,6 +13,9 @@ export interface PushOptions {
 }
 
 export interface Entry extends DailyEntry {
+  linesAdded: number;
+  linesRemoved: number;
+  commits: number;
   sessions: number;
   interactiveSessions: number;
   projects: number;
@@ -22,6 +26,9 @@ export interface Entry extends DailyEntry {
 }
 
 const EMPTY_SESSIONS = {
+  linesAdded: 0,
+  linesRemoved: 0,
+  commits: 0,
   sessions: 0,
   interactiveSessions: 0,
   projects: 0,
@@ -46,7 +53,11 @@ const EMPTY_USAGE = {
 
 /** Outer join on date: a day can have transcripts with no priced usage (a
  *  session that only read files) or priced usage with no transcripts left. */
-export function mergeByDate(usage: DailyEntry[], sessions: SessionStats[]): Entry[] {
+export function mergeByDate(
+  usage: DailyEntry[],
+  sessions: SessionStats[],
+  lines: DayLines[] = [],
+): Entry[] {
   const byDate = new Map<string, Entry>();
 
   for (const entry of usage) {
@@ -63,6 +74,16 @@ export function mergeByDate(usage: DailyEntry[], sessions: SessionStats[]): Entr
       firstActivityAt: stat.firstActivityAt,
       lastActivityAt: stat.lastActivityAt,
       maxGapSeconds: stat.maxGapSeconds,
+    });
+  }
+
+  for (const day of lines) {
+    const existing = byDate.get(day.date) ?? { date: day.date, ...EMPTY_USAGE, ...EMPTY_SESSIONS };
+    byDate.set(day.date, {
+      ...existing,
+      linesAdded: day.linesAdded,
+      linesRemoved: day.linesRemoved,
+      commits: day.commits,
     });
   }
 
@@ -130,7 +151,8 @@ function printEntries(entries: Entry[]): void {
         `${String(entry.interactiveSessions).padStart(3)} yours / ` +
         `${String(entry.sessions).padStart(4)} total  ` +
         `${String(entry.projects).padStart(2)} proj  ` +
-        `peak ${String(entry.maxConcurrentSessions).padStart(3)}`,
+        `peak ${String(entry.maxConcurrentSessions).padStart(3)}  ` +
+        `+${String(entry.linesAdded).padStart(6)} lines`,
     );
   }
 }
@@ -151,11 +173,19 @@ export async function pushCommand(options: PushOptions, apiUrl: string): Promise
   };
 
   const { since, until } = resolveRange(options, identity);
-  const [usage, sessions] = await Promise.all([
+  const turns = await collectTurns(since, until);
+  const authors = identity.git_authors?.length
+    ? identity.git_authors
+    : [await authorEmail()].filter((a): a is string => Boolean(a));
+
+  const [usage, sessions, lines] = await Promise.all([
     collectDaily(since, until),
-    collectSessions(since, until),
+    Promise.resolve(summarize(turns)),
+    // Repos come from the transcripts, so nothing has to be configured: if the
+    // agent worked there, it is walked.
+    reposFrom(turns).then((repos) => collectLines(repos, since, until, authors)),
   ]);
-  const entries = mergeByDate(usage, sessions);
+  const entries = mergeByDate(usage, sessions, lines);
 
   if (entries.length === 0) {
     console.log(`No usage found between ${since} and ${until}.`);

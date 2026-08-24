@@ -27,6 +27,8 @@ export interface Config {
   device_id: string;
   device_name: string;
   last_push_date?: string;
+  /** Git identities that count as you. One person is routinely several. */
+  git_authors?: string[];
 }
 
 function ensureDir(): void {
@@ -60,6 +62,9 @@ export function loadConfig(): Config | null {
       device_id: typeof parsed.device_id === "string" ? parsed.device_id : getMachineId(),
       device_name: typeof parsed.device_name === "string" ? parsed.device_name : getDeviceName(),
       last_push_date: typeof parsed.last_push_date === "string" ? parsed.last_push_date : undefined,
+      git_authors: Array.isArray(parsed.git_authors)
+        ? parsed.git_authors.filter((a): a is string => typeof a === "string")
+        : undefined,
     };
   } catch {
     return null;

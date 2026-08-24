@@ -7,7 +7,9 @@ Threads dropped deliberately, with the condition that would revive each one.
 Ported to `apps/web/lib/console/flight.ts`, wired to the "Enter tokenmax"
 button. The study may still change it; re-extracting is the same one script.
 
-## Lines of code
+## ~~Lines of code~~ — done 2026-08-24
+
+Built: `packages/cli/src/lib/git.ts`, surfaced as cost per 1,000 lines.
 
 Source decided: git, filtered on the `Co-Authored-By: Claude` trailer.
 Transcripts lost because shell edits are invisible to them — the session that
@@ -20,7 +22,9 @@ The repo list needs no input. Every transcript turn records `cwd`, and
 `git rev-parse --show-toplevel` resolves those to repo roots; non-repos like
 `/tmp` fall out on their own. 18 distinct cwds in the last 30 days.
 
-**Revive when:** you want the numbers. Nothing is blocking it.
+One catch found in the building: `%(trailers:...,valueonly)` strips the key, so
+matching on `co-authored-by:` matched nothing. It matches `@anthropic.com` in
+the trailer value instead.
 
 ## A collaborator who also uses Claude Code
 

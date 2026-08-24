@@ -164,11 +164,23 @@ async function readTurns(path: string, project: string, from: number, to: number
 
 /** Reads local transcripts between two YYYY-MM-DD dates. Nothing but the
  *  derived counts ever leaves this function. */
+/** The raw turns, for callers that need more than the daily summary. */
+export async function collectTurns(
+  since: string,
+  until: string,
+): Promise<Turn[]> {
+  return gatherTurns(since, until);
+}
+
 export async function collectSessions(
   since: string,
   until: string,
   ttlSeconds = DEFAULT_TTL_SECONDS,
 ): Promise<SessionStats[]> {
+  return summarize(await gatherTurns(since, until), ttlSeconds);
+}
+
+async function gatherTurns(since: string, until: string): Promise<Turn[]> {
   const from = new Date(`${since}T00:00:00`).getTime();
   const to = new Date(`${until}T23:59:59.999`).getTime();
 
@@ -204,5 +216,5 @@ export async function collectSessions(
     }
   }
 
-  return summarize(turns, ttlSeconds);
+  return turns;
 }

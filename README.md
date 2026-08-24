@@ -35,11 +35,28 @@ re-authenticating a laptop does not turn it into a second device.
 
 ## What a day records
 
-Two collectors, merged on the date:
+Three collectors, merged on the date:
 
 - **ccusage** — tokens, cost, models, per-model breakdown
 - **transcripts** — sessions, projects, peak concurrency, first and last turn,
   widest quiet stretch
+- **git** — lines added and removed, and commits
+
+Lines come from git rather than from the transcripts because shell edits are
+invisible to a transcript; the session that built this repo wrote every file
+through `sed` and heredocs. A commit counts when it carries a Claude co-author
+trailer **and** was authored by one of your git identities — the trailer is what
+makes it agent work, the author is what keeps a collaborator's agent work out of
+your numbers.
+
+Repositories need no configuring: every transcript turn records its `cwd`, and
+whichever of those resolve to a repo root are the ones walked.
+
+`git_authors` in `~/.tokenmax/config.json` overrides the identity list, which
+matters because one person is routinely several git identities.
+
+Efficiency is reported as **cost per 1,000 lines** — cost over lines is a number
+too small to read.
 
 Sessions split two ways. `entrypoint: "cli"` is a terminal you opened;
 `sdk-*` is a session some agent spawned — subagents, workflows, `claude -p`.
@@ -188,6 +205,9 @@ psql "$DATABASE_URL" -f supabase/tests/rollup.sql         # multi-device contrac
 psql "$DATABASE_URL" -f supabase/tests/rls.sql            # access contract
 psql "$DATABASE_URL" -f supabase/tests/windows.sql        # window boundaries
 ```
+
+The pooler can hang on a long DDL session; applying migrations through the
+Management API's `database/query` endpoint is the reliable path.
 
 Both SQL tests roll back when they finish, so they are safe to run repeatedly
 against a real database.

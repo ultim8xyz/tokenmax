@@ -38,7 +38,8 @@ function loadConfig() {
       username: typeof parsed.username === "string" ? parsed.username : null,
       device_id: typeof parsed.device_id === "string" ? parsed.device_id : getMachineId(),
       device_name: typeof parsed.device_name === "string" ? parsed.device_name : getDeviceName(),
-      last_push_date: typeof parsed.last_push_date === "string" ? parsed.last_push_date : void 0
+      last_push_date: typeof parsed.last_push_date === "string" ? parsed.last_push_date : void 0,
+      git_authors: Array.isArray(parsed.git_authors) ? parsed.git_authors.filter((a) => typeof a === "string") : void 0
     };
   } catch {
     return null;
@@ -347,7 +348,10 @@ async function readTurns(path, project, from, to) {
   }
   return turns;
 }
-async function collectSessions(since, until, ttlSeconds = DEFAULT_TTL_SECONDS) {
+async function collectTurns(since, until) {
+  return gatherTurns(since, until);
+}
+async function gatherTurns(since, until) {
   const from = (/* @__PURE__ */ new Date(`${since}T00:00:00`)).getTime();
   const to = (/* @__PURE__ */ new Date(`${until}T23:59:59.999`)).getTime();
   let projectDirs;
@@ -375,12 +379,118 @@ async function collectSessions(since, until, ttlSeconds = DEFAULT_TTL_SECONDS) {
       }
     }
   }
-  return summarize(turns, ttlSeconds);
+  return turns;
+}
+
+// src/lib/git.ts
+import { execFile as execFile2 } from "child_process";
+import { promisify as promisify2 } from "util";
+var execFileAsync2 = promisify2(execFile2);
+var MAX_BUFFER2 = 16 * 1024 * 1024;
+var TRAILER = "@anthropic.com";
+var HEAD = "@@C@@";
+var SEP = "@@T@@";
+async function git(cwd, args) {
+  const { stdout } = await execFileAsync2("git", args, {
+    cwd,
+    maxBuffer: MAX_BUFFER2,
+    encoding: "utf-8"
+  });
+  return stdout;
+}
+async function repoRoot(path) {
+  try {
+    return (await git(path, ["rev-parse", "--show-toplevel"])).trim() || null;
+  } catch {
+    return null;
+  }
+}
+async function authorEmail() {
+  try {
+    const { stdout } = await execFileAsync2("git", ["config", "--get", "user.email"], {
+      encoding: "utf-8"
+    });
+    return stdout.trim().toLowerCase() || null;
+  } catch {
+    return null;
+  }
+}
+function parseLog(stdout) {
+  const byDate = /* @__PURE__ */ new Map();
+  let current = null;
+  for (const line of stdout.split("\n")) {
+    if (line.startsWith(HEAD)) {
+      const [iso, trailers] = line.slice(HEAD.length).split(SEP);
+      current = null;
+      if (!iso || !trailers?.toLowerCase().includes(TRAILER)) continue;
+      const at = Date.parse(iso);
+      if (Number.isNaN(at)) continue;
+      const date = localDate(at);
+      current = byDate.get(date) ?? { date, linesAdded: 0, linesRemoved: 0, commits: 0 };
+      current.commits += 1;
+      byDate.set(date, current);
+      continue;
+    }
+    if (!current || !line) continue;
+    const [added, removed] = line.split("	");
+    if (added === "-" || removed === "-") continue;
+    const a = Number(added);
+    const r = Number(removed);
+    if (Number.isFinite(a)) current.linesAdded += a;
+    if (Number.isFinite(r)) current.linesRemoved += r;
+  }
+  return byDate;
+}
+async function reposFrom(turns) {
+  const roots = /* @__PURE__ */ new Set();
+  const seen = /* @__PURE__ */ new Set();
+  for (const turn of turns) {
+    if (seen.has(turn.project)) continue;
+    seen.add(turn.project);
+    const root = await repoRoot(turn.project);
+    if (root) roots.add(root);
+  }
+  return [...roots].sort();
+}
+async function collectLines(repos, since, until, authors) {
+  if (authors.length === 0) return [];
+  const merged = /* @__PURE__ */ new Map();
+  for (const repo of repos) {
+    let stdout;
+    try {
+      stdout = await git(repo, [
+        "log",
+        // git ORs repeated --author, so this is "any of mine".
+        ...authors.map((a) => `--author=${a}`),
+        `--since=${since}T00:00:00`,
+        `--until=${until}T23:59:59`,
+        "--no-merges",
+        "--numstat",
+        `--pretty=format:${HEAD}%aI${SEP}%(trailers:key=Co-authored-by,valueonly,separator=;)`
+      ]);
+    } catch {
+      continue;
+    }
+    for (const [date, day] of parseLog(stdout)) {
+      const existing = merged.get(date);
+      if (!existing) {
+        merged.set(date, { ...day });
+        continue;
+      }
+      existing.linesAdded += day.linesAdded;
+      existing.linesRemoved += day.linesRemoved;
+      existing.commits += day.commits;
+    }
+  }
+  return [...merged.values()].filter((d) => d.date >= since && d.date <= until).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 // src/commands/push.ts
 var MAX_BACKFILL_DAYS = 30;
 var EMPTY_SESSIONS = {
+  linesAdded: 0,
+  linesRemoved: 0,
+  commits: 0,
   sessions: 0,
   interactiveSessions: 0,
   projects: 0,
@@ -401,7 +511,7 @@ var EMPTY_USAGE = {
   costUSD: 0,
   modelBreakdown: []
 };
-function mergeByDate(usage, sessions) {
+function mergeByDate(usage, sessions, lines = []) {
   const byDate = /* @__PURE__ */ new Map();
   for (const entry of usage) {
     byDate.set(entry.date, { ...entry, ...EMPTY_SESSIONS });
@@ -417,6 +527,15 @@ function mergeByDate(usage, sessions) {
       firstActivityAt: stat2.firstActivityAt,
       lastActivityAt: stat2.lastActivityAt,
       maxGapSeconds: stat2.maxGapSeconds
+    });
+  }
+  for (const day of lines) {
+    const existing = byDate.get(day.date) ?? { date: day.date, ...EMPTY_USAGE, ...EMPTY_SESSIONS };
+    byDate.set(day.date, {
+      ...existing,
+      linesAdded: day.linesAdded,
+      linesRemoved: day.linesRemoved,
+      commits: day.commits
     });
   }
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
@@ -458,7 +577,7 @@ function formatTokens(value) {
 function printEntries(entries) {
   for (const entry of entries) {
     console.log(
-      `  ${entry.date}  ${formatUsd(entry.costUSD).padStart(9)}  ${formatTokens(entry.totalTokens).padStart(7)}  ${String(entry.interactiveSessions).padStart(3)} yours / ${String(entry.sessions).padStart(4)} total  ${String(entry.projects).padStart(2)} proj  peak ${String(entry.maxConcurrentSessions).padStart(3)}`
+      `  ${entry.date}  ${formatUsd(entry.costUSD).padStart(9)}  ${formatTokens(entry.totalTokens).padStart(7)}  ${String(entry.interactiveSessions).padStart(3)} yours / ${String(entry.sessions).padStart(4)} total  ${String(entry.projects).padStart(2)} proj  peak ${String(entry.maxConcurrentSessions).padStart(3)}  +${String(entry.linesAdded).padStart(6)} lines`
     );
   }
 }
@@ -472,11 +591,16 @@ async function pushCommand(options, apiUrl) {
     device_name: getDeviceName()
   };
   const { since, until } = resolveRange(options, identity);
-  const [usage, sessions] = await Promise.all([
+  const turns = await collectTurns(since, until);
+  const authors = identity.git_authors?.length ? identity.git_authors : [await authorEmail()].filter((a) => Boolean(a));
+  const [usage, sessions, lines] = await Promise.all([
     collectDaily(since, until),
-    collectSessions(since, until)
+    Promise.resolve(summarize(turns)),
+    // Repos come from the transcripts, so nothing has to be configured: if the
+    // agent worked there, it is walked.
+    reposFrom(turns).then((repos) => collectLines(repos, since, until, authors))
   ]);
-  const entries = mergeByDate(usage, sessions);
+  const entries = mergeByDate(usage, sessions, lines);
   if (entries.length === 0) {
     console.log(`No usage found between ${since} and ${until}.`);
     return 0;

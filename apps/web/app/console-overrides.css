@@ -38,9 +38,9 @@ button:focus-visible {
 
 /* One more track than the study: it had no downtime column. */
 .board {
-  --cols: clamp(42px, 4.6vw, 62px) minmax(0, 1.5fr) minmax(0, 0.85fr)
-          minmax(0, 0.62fr) minmax(0, 0.5fr) minmax(0, 0.5fr) minmax(0, 0.56fr)
-          minmax(0, 0.8fr);
+  --cols: clamp(42px, 4.6vw, 62px) minmax(0, 1.35fr) minmax(0, 0.8fr)
+          minmax(0, 0.56fr) minmax(0, 0.44fr) minmax(0, 0.44fr) minmax(0, 0.5fr)
+          minmax(0, 0.6fr) minmax(0, 0.74fr);
 }
 
 /* A member's GitHub picture, which the study's mock had no equivalent for. */
@@ -81,4 +81,40 @@ button:focus-visible {
 .art .over {
   background: linear-gradient(transparent, rgba(3, 5, 10, 0.55) 30%, rgba(3, 5, 10, 0.94) 78%);
   padding-top: clamp(40px, 8vh, 90px);
+}
+
+/* The chart reads a pointer, which the study's static mock never had to. */
+.chart-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.chart-tip {
+  position: absolute;
+  top: clamp(8px, 1.2vh, 16px);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  background: rgba(4, 7, 14, 0.9);
+  border: 1px solid var(--stroke2);
+  white-space: nowrap;
+}
+
+.chart-tip .d {
+  font-family: var(--mn);
+  font-size: var(--t1);
+  letter-spacing: 0.1em;
+  color: var(--faint);
+}
+
+.chart-tip .v {
+  font-family: var(--mn);
+  font-size: var(--t2);
+  color: var(--text);
 }

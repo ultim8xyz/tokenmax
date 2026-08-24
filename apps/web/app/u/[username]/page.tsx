@@ -4,7 +4,9 @@ import { requireMember } from "@/lib/auth";
 import { loadBoard, loadMember } from "@/lib/console/load";
 import {
   classOf,
+  costPerKiloLine,
   dur,
+  toks as toksFmt,
   streakOf,
   toks,
   total,
@@ -95,30 +97,42 @@ export default async function ProfilePage({
 
             <div className="big rise" style={{ "--i": 2 } as React.CSSProperties}>
               <div className="k">{isSelf ? "Your machines" : "Machines"}</div>
-              <div className="rigs">
-                {member.devices.length === 0 && <div className="rig">nothing reporting yet</div>}
-                {member.devices.map((d, i) => (
-                  <div className="rig" key={d.name + d.lastSeenAt}>
-                    <span
-                      className="d"
-                      style={{
-                        background: i === 0 ? `hsl(${member.hue}, 96%, 66%)` : "rgba(150,166,205,0.34)",
-                        boxShadow: i === 0 ? `0 0 10px hsl(${member.hue}, 96%, 60%)` : undefined,
-                      }}
-                    />
-                    {/* A machine name is the owner's business and nobody else's. */}
-                    <span className="n">{isSelf ? d.name : "hidden"}</span>
-                    <span className="a">{d.lastSeenAt.slice(0, 10)}</span>
+              {/* A machine name is the owner's business and nobody else's, and a
+                  column of the word "hidden" told everyone how many there were
+                  while saying nothing useful. Visitors get the count. */}
+              {isSelf ? (
+                <div className="rigs">
+                  {member.devices.length === 0 && <div className="rig">nothing reporting yet</div>}
+                  {member.devices.map((d, i) => (
+                    <div className="rig" key={d.name + d.lastSeenAt}>
+                      <span
+                        className="d"
+                        style={{
+                          background:
+                            i === 0 ? `hsl(${member.hue}, 96%, 66%)` : "rgba(150,166,205,0.34)",
+                          boxShadow: i === 0 ? `0 0 10px hsl(${member.hue}, 96%, 60%)` : undefined,
+                        }}
+                      />
+                      <span className="n">{d.name}</span>
+                      <span className="a">{d.lastSeenAt.slice(0, 10)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="v">{member.devices.length}</div>
+                  <div className="n">
+                    {member.devices.length === 1 ? "machine reporting" : "machines reporting"}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
 
             <div className="duo rise" style={{ "--i": 3 } as React.CSSProperties}>
               <div className="big">
-                <div className="k">Projects</div>
-                <div className="v">{t.projects}</div>
-                <div className="n">busiest day</div>
+                <div className="k">Machines</div>
+                <div className="v">{member.devices.length}</div>
+                <div className="n">reporting</div>
               </div>
               <div className="big">
                 <div className="k">Longest quiet</div>
@@ -144,6 +158,21 @@ export default async function ProfilePage({
               <SpendChart days={member.days} />
               <div className="lbl">Daily spend · last 30</div>
               <div className="peak">peak {usd(peakDay)}</div>
+            </div>
+
+            <div className="bigrow rise" style={{ "--i": 2 } as React.CSSProperties}>
+              <Big
+                k="Per 1,000 lines"
+                v={(() => {
+                  const rate = costPerKiloLine(t.cost, t.linesAdded);
+                  return rate === null ? "—" : usd(rate);
+                })()}
+                n="what output costs"
+                hi
+              />
+              <Big k="Lines written" v={toksFmt(t.linesAdded)} n="added, agent-assisted" />
+              <Big k="Commits" v={String(t.commits)} n="carrying a Claude trailer" />
+              <Big k="Projects" v={String(t.projects)} n="busiest day" />
             </div>
 
             <div className="strip rise" style={{ "--i": 3 } as React.CSSProperties}>

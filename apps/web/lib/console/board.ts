@@ -22,6 +22,9 @@ export interface DayRow {
   max_concurrent_sessions: number;
   device_count: number;
   max_gap_seconds: number;
+  lines_added: number;
+  lines_removed: number;
+  commits: number;
 }
 
 export interface MemberRow {
@@ -41,6 +44,8 @@ export interface Totals {
   peak: number;
   devices: number;
   active: number;
+  linesAdded: number;
+  commits: number;
 }
 
 /** A stable hue per member, so a profile looks the same on every device. */
@@ -67,6 +72,8 @@ export function total(days: DayRow[]): Totals {
     peak: Math.max(0, ...days.map((d) => Number(d.max_concurrent_sessions)), 0),
     devices: Math.max(0, ...days.map((d) => Number(d.device_count)), 0),
     active: days.filter((d) => Number(d.cost_usd) > 0).length,
+    linesAdded: sum((d) => Number(d.lines_added ?? 0)),
+    commits: sum((d) => Number(d.commits ?? 0)),
   };
 }
 
@@ -145,5 +152,18 @@ export const toks = (n: number) =>
   : n >= 1e6 ? (n / 1e6).toFixed(1) + "M"
   : n >= 1e3 ? Math.round(n / 1e3) + "K"
   : String(Math.round(n));
+
+/**
+ * What a thousand lines cost.
+ *
+ * Cost over lines is a tiny number nobody can read, so it is scaled to a
+ * thousand — the unit a day of agent work actually lands in. Null when there
+ * are no lines, because dividing by nothing is not an efficiency.
+ */
+export const PER_LINES = 1000;
+
+export function costPerKiloLine(cost: number, linesAdded: number): number | null {
+  return linesAdded > 0 ? (cost / linesAdded) * PER_LINES : null;
+}
 
 export const dur = (s: number) => (s >= 3600 ? (s / 3600).toFixed(1) + "h" : Math.round(s / 60) + "m");

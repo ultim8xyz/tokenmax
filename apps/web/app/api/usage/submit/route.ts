@@ -29,9 +29,12 @@ interface Entry {
   firstActivityAt: string | null;
   lastActivityAt: string | null;
   maxGapSeconds: number;
+  linesAdded: number;
+  linesRemoved: number;
+  commits: number;
 }
 
-const MAX_SESSIONS_PER_DAY = 100_000;
+const MAX_SESSIONS_PER_DAY = 5_000_000;
 
 function counter(value: unknown): number {
   const n = nonNegative(value ?? 0);
@@ -93,6 +96,9 @@ function parseEntry(raw: unknown): Entry | null {
     firstActivityAt: timestamp(raw.firstActivityAt),
     lastActivityAt: timestamp(raw.lastActivityAt),
     maxGapSeconds: counter(raw.maxGapSeconds),
+    linesAdded: counter(raw.linesAdded),
+    linesRemoved: counter(raw.linesRemoved),
+    commits: counter(raw.commits),
     ...(numbers as Record<keyof typeof numbers, number>),
   };
 }
@@ -177,6 +183,9 @@ export async function POST(request: Request) {
       first_activity_at: entry.firstActivityAt,
       last_activity_at: entry.lastActivityAt,
       max_gap_seconds: entry.maxGapSeconds,
+      lines_added: entry.linesAdded,
+      lines_removed: entry.linesRemoved,
+      commits: entry.commits,
       collector: "ccusage-20+transcripts",
       updated_at: now,
     })),
