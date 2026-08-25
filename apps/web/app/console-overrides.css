@@ -192,61 +192,151 @@ button:focus-visible {
   letter-spacing: -0.02em;
 }
 
-/* ── the member card is the lit object ───────────────────────────────────
+/* ── surfaces, rebuilt from the card study ───────────────────────────────
  *
- * One object per screen, and this is it. The tiles stay dark on purpose:
- * the rim only reads as bright because there is something dark beside it.
- * Lighting everything is what flattens it.
+ * Ported from docs/card-proto/index.html. Every surface here is the same
+ * object at different sizes: a dark hue-tinted slab, fog pooling inside it,
+ * a frost layer drawing the rim, and a bloom thrown outside.
  *
- * Construction is the frosted-card study, adapted so the member's photo (or
- * their generated world) is what sits inside the glass instead of painted
- * fog. Four inset shadows, four jobs — hard rim, specular arc where a light
- * above would catch, an edge glow so the light hugs the border rather than
- * pooling in the middle, and a floor so the bottom does not float.
+ * The value that matters most is the slab: oklch(.26 .05 H / .58). It is
+ * DARK. An earlier attempt used a light wash and the whole page went hazy —
+ * fog only reads as light pooling in a solid if there is a solid.
+ *
+ * Colour is oklch, not hsl, because these hues are assigned by hashing a
+ * username and can land anywhere on the wheel. hsl yellow blows out and hsl
+ * blue goes dim at the same nominal lightness; oklch holds both flat.
  */
+
+/* --hue is an hsl angle. oklch does not share that wheel: hsl 198 is cyan,
+ * oklch 198 is green, so every card came out teal. The offset lands the blues
+ * and violets back where the rest of the app puts them. It is an
+ * approximation — the two wheels are not related by a constant — but it is
+ * within a few degrees across the range these hues actually occupy. */
+:root {
+  --okh: calc(var(--hue) + 30);
+  --slab: oklch(0.26 0.05 var(--okh) / 0.58);
+  --frost: blur(14px) saturate(1.5) brightness(1.06);
+}
+
+.big,
+.chart,
+.brow,
+.srow,
+.art {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--slab);
+  border: 0;
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+}
+
+/* Rows carry the member's own hue rather than the room's, so a full board is
+ * one light per member instead of a single wash. */
+.brow { --hue: var(--th); }
+
+/* ---- the fog -----------------------------------------------------------
+ * Five pools, deliberately lopsided, heavy top-left and bottom-right and
+ * thin through the middle. They overlap, which is what makes it read as one
+ * body of fog rather than five spots. A trough thins the centre so the pools
+ * stay pools, and a low even haze fills the gaps.
+ *
+ * Hue offsets stay inside ±18. Wider offsets look gorgeous in violet and
+ * fall apart in green: at hue 150 a −26 offset lands on 124, which is
+ * yellow, and the card immediately reads as a lime gradient.
+ */
+.big::before,
+.chart::before,
+.brow::before,
+.art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transform: scale(1.25);
+  filter: blur(14px);
+  background:
+    radial-gradient(56% 74% at 10% 2%, oklch(0.79 0.175 calc(var(--okh) + 16) / 0.9) 0%, transparent 66%),
+    radial-gradient(46% 60% at 94% 14%, oklch(0.71 0.175 calc(var(--okh) - 16) / 0.88) 0%, transparent 64%),
+    radial-gradient(66% 76% at 82% 102%, oklch(0.65 0.17 calc(var(--okh) + 3) / 0.88) 0%, transparent 68%),
+    radial-gradient(38% 46% at 27% 80%, oklch(0.85 0.15 calc(var(--okh) + 18) / 0.6) 0%, transparent 62%),
+    radial-gradient(52% 46% at 44% 58%, oklch(0.26 0.06 var(--okh) / 0.44) 0%, transparent 76%),
+    radial-gradient(130% 130% at 38% 24%, oklch(0.5 0.1 calc(var(--okh) + 9) / 0.34) 0%, transparent 88%);
+}
+
+/* Tiles hold data and their job is to be dark, so the hero has something to
+ * be bright against. A whisper of hue, not a wash — the previous two passes
+ * both failed by fogging everything until nothing read as lit.
+ *
+ * The hero's fog is the member's own photo, so it paints none of its own. */
+.big::before,
+.chart::before,
+.brow::before { opacity: 0.14; }
+.big.hi::before { opacity: 0.26; }
+.brow.top::before { opacity: 0.24; }
+.art::before { opacity: 0; }
+
+/* ---- the frost ---------------------------------------------------------
+ * Four inset shadows, four jobs: a hard rim on the edge, a specular arc
+ * across the top where a light above would catch, an edge glow so the light
+ * hugs the border instead of pooling in the middle, and a floor so the
+ * bottom does not float. The rim alone reads as a drawn-on border.
+ */
+.big::after,
+.chart::after,
+.brow::after,
+.srow::after,
 .art::after {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 2;
   pointer-events: none;
   border-radius: inherit;
-  z-index: 2;
   box-shadow:
-    inset 0 0 0 1.25px hsl(var(--hue) 90% 96% / 0.72),
-    inset 0 2px 0 -0.5px hsl(var(--hue) 80% 99% / 0.55),
-    inset 0 0 34px -16px hsl(var(--hue) 96% 72% / 0.5),
-    inset 0 -6px 26px -14px rgba(0, 0, 0, 0.45);
-  background: radial-gradient(130% 110% at 50% 0%, rgba(255, 255, 255, 0.055), transparent 46%);
+    inset 0 0 0 1px oklch(0.98 0.04 var(--okh) / 0.3),
+    inset 0 1.5px 0 -0.5px oklch(0.99 0.02 var(--okh) / 0.34),
+    inset 0 0 34px -18px oklch(0.8 0.17 var(--okh) / 0.4),
+    inset 0 -6px 24px -14px rgba(0, 0, 0, 0.45);
+  background: radial-gradient(130% 110% at 50% 0%, rgba(255, 255, 255, 0.045), transparent 46%);
 }
 
-/* The bloom. Five coincident shadows, radii roughly doubling and alpha
- * roughly halving — what inverse-square falloff looks like faked in five
- * samples. Every one at zero y-offset: a single pixel of offset and it stops
- * being an emitter and becomes a drop shadow. */
+/* Content sits above fog and below frost. */
+.big > *,
+.chart > *,
+.brow > *,
+.art .over { position: relative; z-index: 1; }
+
+/* ---- the bloom ---------------------------------------------------------
+ * Coincident zero-offset shadows, radii roughly doubling and alpha roughly
+ * halving — inverse-square falloff faked in a few samples. Zero offset is
+ * the whole trick: one pixel of y and it is a drop shadow, not an emitter.
+ *
+ * Only the lit objects throw one. The tiles stay unlit so the rim on the
+ * hero has something dark to be bright against.
+ */
 .art {
-  border-color: transparent;
+  border-radius: clamp(14px, 1.8vh, 22px);
   box-shadow:
-    0 0 0 1px hsl(var(--hue) 96% 76% / 0.7),
-    0 0 10px 0 hsl(var(--hue) 96% 66% / 0.36),
-    0 0 28px 0 hsl(var(--hue) 96% 60% / 0.22),
-    0 0 68px 0 hsl(var(--hue) 96% 56% / 0.13),
-    0 0 150px 0 hsl(var(--hue) 96% 52% / 0.08);
+    0 0 0 1px oklch(0.97 0.07 var(--okh) / 0.62),
+    0 0 12px 0 oklch(0.8 0.18 var(--okh) / 0.3),
+    0 0 34px 0 oklch(0.75 0.18 var(--okh) / 0.2),
+    0 0 82px 0 oklch(0.7 0.17 var(--okh) / 0.12),
+    0 0 170px 0 oklch(0.68 0.16 var(--okh) / 0.07);
 }
 
-/* The scrim follows the card's corner rather than cutting across it. */
+.brow.top {
+  box-shadow:
+    0 0 0 1px oklch(0.95 0.07 var(--okh) / 0.4),
+    0 0 14px 0 oklch(0.8 0.18 var(--okh) / 0.18),
+    0 0 44px 0 oklch(0.74 0.17 var(--okh) / 0.10);
+}
+
+/* Concentric: inner radius = outer − inset, so the gap holds through the
+ * corner. One pad, one calc, no second magic number. */
 .art .over {
-  border-radius: 0 0 calc(clamp(14px, 1.8vh, 22px) - 1px) calc(clamp(14px, 1.8vh, 22px) - 1px);
-}
-
-/* The room takes a little of the member's colour at the very edge, and only
- * there — it has to stay dark in the middle or the card has nothing to be
- * bright against. */
-#shell::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  box-shadow: inset 0 0 clamp(70px, 10vh, 150px) -50px hsl(var(--hue) 96% 56% / 0.28);
-  transition: box-shadow 600ms var(--ease);
+  --r: clamp(14px, 1.8vh, 22px);
+  border-radius: 0 0 calc(var(--r) - 1px) calc(var(--r) - 1px);
 }
