@@ -133,3 +133,61 @@ button:focus-visible {
 .nav.me[aria-current="true"] {
   background: none;
 }
+
+/* ── the label / figure swap ─────────────────────────────────────────────
+ *
+ * The study puts mono + uppercase + 0.13em on every label and sets the
+ * figures in the UI face. That is the wrong way round: mono earns its keep
+ * on things that have to line up in a column, and a label that is already
+ * the smallest, faintest thing on screen does not need tracking on top.
+ *
+ * Nine column heads all shouting at 0.14em is also why the board reads
+ * louder than it is. Sparse mono caps still work — the wordmark and the
+ * POOL line keep theirs, because two of them on a screen is a signal and
+ * nine is wallpaper.
+ *
+ * Every label is already written in sentence case in the markup, so this
+ * only has to stop transforming them.
+ */
+
+.bhead,
+.big .k,
+.chart .lbl,
+.field label {
+  font-family: var(--ui);
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.pager {
+  font-family: var(--ui);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+/* Chrome you click reads as words, not as a system message. */
+.nav,
+.seg button,
+.cmd button,
+.ob .skip {
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.shelfhead .sub {
+  font-family: var(--ui);
+  letter-spacing: 0.01em;
+}
+
+/* Figures go monospaced, which is what tabular-nums was reaching for. The
+ * negative tracking stays: mono is wide, and these sit in a fixed grid. */
+.brow .rk,
+.brow .fig {
+  font-family: var(--mn);
+  letter-spacing: -0.01em;
+}
+
+.big .v {
+  font-family: var(--mn);
+  letter-spacing: -0.02em;
+}
