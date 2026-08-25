@@ -191,3 +191,62 @@ button:focus-visible {
   font-family: var(--mn);
   letter-spacing: -0.02em;
 }
+
+/* ── the member card is the lit object ───────────────────────────────────
+ *
+ * One object per screen, and this is it. The tiles stay dark on purpose:
+ * the rim only reads as bright because there is something dark beside it.
+ * Lighting everything is what flattens it.
+ *
+ * Construction is the frosted-card study, adapted so the member's photo (or
+ * their generated world) is what sits inside the glass instead of painted
+ * fog. Four inset shadows, four jobs — hard rim, specular arc where a light
+ * above would catch, an edge glow so the light hugs the border rather than
+ * pooling in the middle, and a floor so the bottom does not float.
+ */
+.art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 2;
+  box-shadow:
+    inset 0 0 0 1.25px hsl(var(--hue) 90% 96% / 0.72),
+    inset 0 2px 0 -0.5px hsl(var(--hue) 80% 99% / 0.55),
+    inset 0 0 34px -16px hsl(var(--hue) 96% 72% / 0.5),
+    inset 0 -6px 26px -14px rgba(0, 0, 0, 0.45);
+  background: radial-gradient(130% 110% at 50% 0%, rgba(255, 255, 255, 0.055), transparent 46%);
+}
+
+/* The bloom. Five coincident shadows, radii roughly doubling and alpha
+ * roughly halving — what inverse-square falloff looks like faked in five
+ * samples. Every one at zero y-offset: a single pixel of offset and it stops
+ * being an emitter and becomes a drop shadow. */
+.art {
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1px hsl(var(--hue) 96% 76% / 0.7),
+    0 0 10px 0 hsl(var(--hue) 96% 66% / 0.36),
+    0 0 28px 0 hsl(var(--hue) 96% 60% / 0.22),
+    0 0 68px 0 hsl(var(--hue) 96% 56% / 0.13),
+    0 0 150px 0 hsl(var(--hue) 96% 52% / 0.08);
+}
+
+/* The scrim follows the card's corner rather than cutting across it. */
+.art .over {
+  border-radius: 0 0 calc(clamp(14px, 1.8vh, 22px) - 1px) calc(clamp(14px, 1.8vh, 22px) - 1px);
+}
+
+/* The room takes a little of the member's colour at the very edge, and only
+ * there — it has to stay dark in the middle or the card has nothing to be
+ * bright against. */
+#shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  box-shadow: inset 0 0 clamp(70px, 10vh, 150px) -50px hsl(var(--hue) 96% 56% / 0.28);
+  transition: box-shadow 600ms var(--ease);
+}
