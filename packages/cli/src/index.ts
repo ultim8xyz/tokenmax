@@ -13,7 +13,7 @@ Usage
   tokenmax login           Authenticate this device in the browser instead
   tokenmax push [options]  Push usage
   tokenmax status          Streak, weekly spend, rank, and per-device split
-  tokenmax auto [--off]    Show, install, or remove the daily sync
+  tokenmax auto [--off]    Show, install, or remove the automatic sync
 
 Options
   --date YYYY-MM-DD        Push one specific day
