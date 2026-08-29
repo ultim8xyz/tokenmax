@@ -54,18 +54,17 @@ breaks the promise that paths never leave the machine.
 **Revive when:** a second device is actually syncing and the undercount shows up
 in a number you care about.
 
-## The SQL contract tests can no longer run against production
+## ~~The SQL contract tests can no longer run against production~~ — done 2026-08-29
 
-`supabase/tests/{rollup,rls,windows}.sql` assert exact counts against an empty
-`public` schema. The live database now holds three real profiles, so `rls.sql`
-reads "expected 3 row(s), got 6" — fixtures plus real members. `rollup.sql`
-still passes because it asserts on its own user id only.
+Fixed rather than parked. Every count assertion is scoped to its own fixtures;
+the ones expecting zero stay unscoped, because "sees nothing" is a stronger
+claim when there is something real to see.
 
-They also need `psql` for `\set`, which is not installed on this machine. The
-Supabase Management API runs SQL but not psql meta-commands, and hand-substituting
-the variables mangles `::numeric` casts.
+`windows.sql` turned out to be worse than fragile: its leaderboard assertions
+read the whole view, and the fixture profile had no `onboarded_at`, which 0002
+had added to the view's WHERE. Against the empty database it was written for,
+the view returned nothing and every window assertion passed by matching no rows.
+It had never tested anything.
 
-**Revive when:** a schema change lands that these tests actually cover — then
-install `psql` and run them against a scratch database, not the live one.
-Scoping the fixtures to their own user ids would make them safe to run anywhere,
-which is the real fix.
+`supabase/tests/run.sh` runs all three through the Management API, since psql is
+not installed here. All three pass live, and each was mutation-checked.
