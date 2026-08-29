@@ -53,3 +53,19 @@ breaks the promise that paths never leave the machine.
 
 **Revive when:** a second device is actually syncing and the undercount shows up
 in a number you care about.
+
+## The SQL contract tests can no longer run against production
+
+`supabase/tests/{rollup,rls,windows}.sql` assert exact counts against an empty
+`public` schema. The live database now holds three real profiles, so `rls.sql`
+reads "expected 3 row(s), got 6" — fixtures plus real members. `rollup.sql`
+still passes because it asserts on its own user id only.
+
+They also need `psql` for `\set`, which is not installed on this machine. The
+Supabase Management API runs SQL but not psql meta-commands, and hand-substituting
+the variables mangles `::numeric` casts.
+
+**Revive when:** a schema change lands that these tests actually cover — then
+install `psql` and run them against a scratch database, not the live one.
+Scoping the fixtures to their own user ids would make them safe to run anywhere,
+which is the real fix.
