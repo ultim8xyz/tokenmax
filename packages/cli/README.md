@@ -42,13 +42,20 @@ Everything else needs an instance to talk to.
 
 ## Staying current
 
-`setup` installs a daily sync as well as pushing once — launchd on macOS, cron
-on Linux, nothing on Windows. Adding a machine means adding it for good, not
-once.
+`setup` installs two things as well as pushing once:
 
-The schedule runs `~/.tokenmax/auto-push.sh`, a three-line wrapper, so it refers
-to one stable path rather than to whatever npx resolved on the day it was
-installed. Output lands in `~/.tokenmax/auto-push.log`.
+- a **Claude Code `SessionEnd` hook**, so a push follows every session. Async,
+  so nothing waits on the network to close a session.
+- a **daily job** at 21:00 — launchd on macOS, cron on Linux — as the floor
+  under it.
+
+`tokenmax auto` shows both and installs whichever is missing; `--off` removes
+them.
+
+Both run `~/.tokenmax/auto-push.sh`. That wrapper writes an absolute path to
+node and to npx, because launchd and cron run with a near-empty PATH — no
+Homebrew, often no node at all. A bare `npx` in there is why nothing ran.
+Output, including a timestamp per run, lands in `~/.tokenmax/auto-push.log`.
 
 ## Files it owns
 

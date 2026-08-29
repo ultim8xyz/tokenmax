@@ -2,6 +2,7 @@ import { apiRequestNoAuth } from "../lib/api.js";
 import { getDeviceName, getMachineId, loadConfig, saveConfig } from "../config.js";
 import { pushCommand } from "./push.js";
 import { install as installSchedule, isInstalled } from "../lib/scheduler.js";
+import { hookInstalled, installHook } from "../lib/hooks.js";
 
 interface RedeemResponse {
   token: string;
@@ -37,16 +38,19 @@ export async function setupCommand(code: string, apiUrl: string): Promise<void> 
 
   const pushed = await pushCommand({}, apiUrl);
 
-  // Adding a machine means adding it for good, not once. A daily job keeps it
-  // reporting without anyone remembering to run anything.
-  if (!isInstalled()) {
-    const scheduler = installSchedule();
-    console.log(
-      scheduler
-        ? `\nDaily sync installed (${scheduler}). Turn it off with \`tokenmax auto --off\`.`
-        : "\nNo scheduler on this platform — run `tokenmax` when you want to sync.",
-    );
-  }
+  // Adding a machine means adding it for good, not once. Two mechanisms: a
+  // session hook for freshness, a daily job as the floor under it.
+  const scheduler = isInstalled() ? null : installSchedule();
+  const hook = hookInstalled() ? null : installHook();
+
+  const on: string[] = [];
+  if (scheduler || isInstalled()) on.push("daily at 21:00");
+  if (hook || hookInstalled()) on.push("after every Claude Code session");
+  console.log(
+    on.length
+      ? `\nSyncing ${on.join(" and ")}. Turn it off with \`tokenmax auto --off\`.`
+      : "\nNothing scheduled here — run `tokenmax` when you want to sync.",
+  );
   if (pushed === 0) {
     // Membership is gated on a real push, so there is nothing to celebrate yet.
     console.log(

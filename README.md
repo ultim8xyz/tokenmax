@@ -91,6 +91,9 @@ minutes.
 
 `tokenmax login` still exists for the type-the-code-in-a-browser flow.
 
+Setup also installs a Claude Code `SessionEnd` hook and a daily job, so a
+machine keeps reporting without anyone remembering to run anything.
+
 No URL to supply: the instance is compiled into the CLI
 (`packages/cli/src/config.ts`). `TOKENMAX_API_URL` still overrides it, which is
 what local development uses.
