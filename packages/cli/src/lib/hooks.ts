@@ -51,8 +51,9 @@ export function hookInstalled(): boolean {
 /**
  * Pushes when a Claude Code session ends.
  *
- * A daily job means a day of lag; this is the difference between a leaderboard
- * and a history. Async, so nothing waits on the network to close a session.
+ * A scheduled job alone means hours of lag; this is the difference between a
+ * leaderboard and a history. Async, so nothing waits on the network to close a
+ * session.
  *
  * Returns false when settings.json exists but cannot be parsed.
  */

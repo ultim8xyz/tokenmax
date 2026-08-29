@@ -1,5 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
-import { LOG_PATH, install, isInstalled, schedulerFor, uninstall } from "../lib/scheduler.js";
+import {
+  LOG_PATH,
+  SCHEDULE_LABEL,
+  install,
+  isInstalled,
+  schedulerFor,
+  uninstall,
+} from "../lib/scheduler.js";
 import { hookInstalled, installHook, uninstallHook } from "../lib/hooks.js";
 
 /** Shows, installs, or removes the automatic push. */
@@ -11,10 +18,14 @@ export function autoCommand(off: boolean): void {
     return;
   }
 
-  if (!isInstalled()) install();
-  if (!hookInstalled()) installHook();
+  // Always reinstall rather than skipping when present: running this is how a
+  // machine set up under an older version picks up a changed schedule.
+  install();
+  installHook();
 
-  console.log(`Daily job:    ${isInstalled() ? `on (${schedulerFor() ?? "unknown"}, 21:00)` : "off"}`);
+  console.log(
+    `Scheduled:    ${isInstalled() ? `on (${schedulerFor() ?? "unknown"}, ${SCHEDULE_LABEL})` : "off"}`,
+  );
   console.log(`Session hook: ${hookInstalled() ? "on (after every Claude Code session)" : "off"}`);
 
   if (existsSync(LOG_PATH)) {

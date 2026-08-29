@@ -3,6 +3,8 @@ import { collectDaily, type DailyEntry } from "../lib/ccusage.js";
 import { collectTurns, summarize, type SessionStats } from "../lib/sessions.js";
 import { authorEmail, collectLines, reposFrom, type DayLines } from "../lib/git.js";
 import { getDeviceName, getMachineId, loadConfig, saveConfig, type Config } from "../config.js";
+import { isInstalled, refresh } from "../lib/scheduler.js";
+import { hookInstalled, installHook } from "../lib/hooks.js";
 
 const MAX_BACKFILL_DAYS = 30;
 
@@ -96,13 +98,20 @@ interface SubmitResponse {
   devices: { device_name: string; cost_usd: number }[];
 }
 
+/**
+ * Local, not UTC. ccusage and `localDate` in sessions.ts both bucket a day by
+ * the wall clock, so a range resolved in UTC asks for the wrong day for anyone
+ * not on it: west of UTC the date rolls over during the evening, `since` is
+ * stamped a day ahead, and that evening's work is never queried again.
+ */
 function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 function shiftDays(d: Date, days: number): Date {
   const out = new Date(d);
-  out.setUTCDate(out.getUTCDate() + days);
+  out.setDate(out.getDate() + days);
   return out;
 }
 
@@ -218,6 +227,12 @@ export async function pushCommand(options: PushOptions, apiUrl: string): Promise
   });
 
   saveConfig({ ...identity, device_id: device, last_push_date: until });
+
+  // Every scheduled run and every session hook lands here, so this is where a
+  // machine gets to notice its own schedule is out of date and repair it
+  // without anyone being told to run a command.
+  if (isInstalled() && !hookInstalled()) installHook();
+  if (refresh()) console.log("\nSchedule updated to the current version.");
 
   console.log(`\nSynced ${response.accepted} day(s) from ${identity.device_name}:`);
   printEntries(entries);

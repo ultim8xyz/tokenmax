@@ -1,7 +1,7 @@
 import { apiRequestNoAuth } from "../lib/api.js";
 import { getDeviceName, getMachineId, loadConfig, saveConfig } from "../config.js";
 import { pushCommand } from "./push.js";
-import { install as installSchedule, isInstalled } from "../lib/scheduler.js";
+import { SCHEDULE_LABEL, install as installSchedule, isInstalled } from "../lib/scheduler.js";
 import { hookInstalled, installHook } from "../lib/hooks.js";
 
 interface RedeemResponse {
@@ -39,12 +39,13 @@ export async function setupCommand(code: string, apiUrl: string): Promise<void> 
   const pushed = await pushCommand({}, apiUrl);
 
   // Adding a machine means adding it for good, not once. Two mechanisms: a
-  // session hook for freshness, a daily job as the floor under it.
-  const scheduler = isInstalled() ? null : installSchedule();
-  const hook = hookInstalled() ? null : installHook();
+  // session hook for freshness, a recurring job as the floor under it. Both
+  // are rewritten unconditionally so a re-run repairs a stale install.
+  const scheduler = installSchedule();
+  const hook = installHook();
 
   const on: string[] = [];
-  if (scheduler || isInstalled()) on.push("daily at 21:00");
+  if (scheduler || isInstalled()) on.push(SCHEDULE_LABEL);
   if (hook || hookInstalled()) on.push("after every Claude Code session");
   console.log(
     on.length
