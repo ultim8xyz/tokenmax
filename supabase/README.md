@@ -8,6 +8,13 @@ Apply in filename order:
 |---|---|
 | `0001_init.sql` | The whole schema |
 | `0002_onboarding.sql` | `profiles.onboarded_at`, and the leaderboard filter that hides members who have never synced |
+| `0004_lines.sql` | `lines_added`, `lines_removed`, `commits` |
+| `0005_drop_invite_links.sql` | Drops `invite_links` and `redeem_invite_link` |
+
+`0003` is missing on purpose: it added `invite_links`, signup opened before
+anything called it, and `0005` removed it. It is deleted rather than kept so a
+fresh database never creates a table only to drop it two files later — which is
+also why `0005` guards every statement with `if exists`.
 
 ```sh
 for f in supabase/migrations/*.sql; do
