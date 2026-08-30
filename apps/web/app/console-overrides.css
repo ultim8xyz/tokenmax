@@ -340,3 +340,491 @@ button:focus-visible {
   --r: clamp(14px, 1.8vh, 22px);
   border-radius: 0 0 calc(var(--r) - 1px) calc(var(--r) - 1px);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE FACEPLATE
+   Reference lock: "Pressure Monitor Interface", Seb Cornelius, recent.design.
+   Modules butt together on shared 1px rules with no gap and no radius; every
+   module carries the same anatomy (lowercase key left, unit right, figure
+   below); scientific notation; a real analogue gauge; a sampled strip chart.
+   The single accent is reserved for live state only — the LED, today's cell,
+   the needle. Rank 01 is not coloured; it is lit, which is a different thing.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#lineup {
+  grid-template-rows: 1fr;
+  overflow: auto;
+  --p-bg: #070809;
+  --p-panel: #0c0e10;
+  --p-panel-2: #101317;
+  --p-rule: #191d21;
+  --p-rule-2: #252b31;
+  --p-faint: #2b3138;
+  --p-ink: #e6ebf0;
+  --p-mid: #8a949e;
+  --p-dim: #565f68;
+  --p-live: #da5c2c;
+  --p-ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.plate {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--p-panel);
+  border-top: 1px solid var(--p-rule-2);
+  color: var(--p-mid);
+  font: 400 12px/1.5 var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Registration marks. A faceplate is a machined part, so it says where it ends. */
+.plate::before,
+.plate::after,
+.mark-tr,
+.mark-bl {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  pointer-events: none;
+  border: 1px solid var(--p-faint);
+  z-index: 6;
+}
+.plate::before { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+.plate::after { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+.mark-tr { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+.mark-bl { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+
+/* Instrument screen texture. 1px scanlines, no blur, never interactive. */
+.scan {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgb(255 255 255 / 0.017) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ── status strip ──────────────────────────────────────────────────────── */
+.pbar {
+  display: flex;
+  align-items: stretch;
+  min-height: 30px;
+  border-bottom: 1px solid var(--p-rule-2);
+  font-size: 11px;
+  color: var(--p-dim);
+}
+.pbar > * {
+  display: flex;
+  align-items: center;
+  padding: 0 13px;
+  border-right: 1px solid var(--p-rule);
+}
+.pseg { padding: 0; gap: 0; }
+.pseg button {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-right: 1px solid var(--p-rule);
+  color: var(--p-dim);
+  font: inherit;
+  padding: 0 13px;
+  min-height: 30px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: color 0.18s var(--p-ease), background 0.18s var(--p-ease);
+}
+.pseg button:last-child { border-right: 0; }
+.pseg button:hover { color: var(--p-ink); }
+.pseg button[aria-pressed="true"] { color: var(--p-ink); background: var(--p-panel-2); }
+.pbar .end {
+  margin-left: auto;
+  border-right: 0;
+  border-left: 1px solid var(--p-rule);
+  color: var(--p-mid);
+}
+.led {
+  width: 5px; height: 5px;
+  background: var(--p-live);
+  margin-right: 7px;
+  flex: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .led { animation: p-pulse 2.4s steps(1, end) infinite; }
+  @keyframes p-pulse { 0%, 60% { opacity: 1 } 61%, 100% { opacity: 0.28 } }
+}
+
+/* ── module system ─────────────────────────────────────────────────────── */
+.pgrid { display: grid; grid-template-columns: minmax(0, 1fr) 336px; flex: 1; }
+.pcol { min-width: 0; display: flex; flex-direction: column; }
+.pside { border-left: 1px solid var(--p-rule-2); }
+
+.mods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.mod {
+  padding: 13px 14px 15px;
+  border-right: 1px solid var(--p-rule);
+  border-bottom: 1px solid var(--p-rule-2);
+  min-width: 0;
+}
+.mod:last-child { border-right: 0; }
+.mod .k,
+.ascii .k,
+.figs .k,
+.gauge .k,
+.scope .k {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--p-dim);
+  letter-spacing: 0;
+}
+.mod .u,
+.ascii .u,
+.gauge .u,
+.scope .u { margin-left: auto; color: var(--p-faint); }
+.mod .v {
+  font-size: 23px;
+  line-height: 1.3;
+  color: var(--p-ink);
+  font-weight: 500;
+  margin-top: 7px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mod .v.sm { font-size: 17px; font-weight: 400; color: var(--p-mid); }
+
+/* ── member strips ─────────────────────────────────────────────────────── */
+.strip {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  border-bottom: 1px solid var(--p-rule-2);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.18s var(--p-ease);
+}
+.strip:hover { background: var(--p-panel-2); }
+.strip:focus-visible {
+  outline: 0;
+  box-shadow: inset 0 0 0 1px var(--p-bg), inset 0 0 0 2px var(--p-ink);
+}
+.who {
+  padding: 14px;
+  border-right: 1px solid var(--p-rule);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+.who .rk {
+  font-size: 15px;
+  color: var(--p-dim);
+  font-weight: 500;
+  align-self: flex-start;
+  padding-top: 2px;
+}
+.strip[data-lead] .who .rk { color: var(--p-ink); }
+.who .nm { min-width: 0; }
+.who .nm b {
+  display: block;
+  color: var(--p-ink);
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.who .nm span { display: block; font-size: 10px; color: var(--p-dim); margin-top: 3px; }
+
+/* ── the card ──────────────────────────────────────────────────────────────
+ * The member's identity object, and the only lit thing on the plate: rank 01
+ * carries the ring and the bloom, everyone else is matte. That is what makes
+ * the ranking legible at a glance without spending the accent colour on it.
+ * The number is the member's own spend, rounded down. Nothing here is invented.
+ * ───────────────────────────────────────────────────────────────────────── */
+.tmcard {
+  position: relative;
+  flex: none;
+  width: 132px;
+  aspect-ratio: 1.586;
+  border-radius: 10px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #16121f;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+}
+/* The avatar is the card's artwork, thrown far out of focus so it reads as a
+ * field of the member's own colour rather than as a photograph. */
+.tmcard .face {
+  position: absolute;
+  inset: -30%;
+  width: 160%;
+  height: 160%;
+  object-fit: cover;
+  filter: blur(11px) saturate(1.5);
+  opacity: 0.62;
+  z-index: 0;
+}
+.tmcard .wash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(147deg,
+      hsl(var(--th, 262) 55% 52% / 0.62) 0%,
+      hsl(calc(var(--th, 262) + 34) 62% 44% / 0.5) 54%,
+      hsl(calc(var(--th, 262) + 58) 58% 32% / 0.72) 100%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 42%);
+}
+/* The inset keyline, which is what makes it read as a card and not a swatch. */
+.tmcard::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  z-index: 3;
+  border: 1.25px solid rgb(255 255 255 / 0.5);
+  border-radius: 7px;
+  pointer-events: none;
+}
+.tmcard .wm {
+  position: absolute;
+  z-index: 2;
+  top: 12px; left: 13px;
+  font-size: 6px;
+  letter-spacing: 0.2em;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.82);
+}
+.tmcard .star {
+  position: absolute;
+  z-index: 2;
+  width: 44%;
+  left: 22%;
+  top: 22%;
+  fill: rgb(255 255 255 / 0.34);
+}
+.tmcard .chip {
+  position: absolute;
+  z-index: 2;
+  right: 15%;
+  top: 40%;
+  width: 17px;
+  height: 13px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, #e8e8ea 0%, #9d9da6 46%, #f2f2f4 52%, #8e8e97 100%);
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.28);
+}
+.tmcard .chip::before,
+.tmcard .chip::after {
+  content: "";
+  position: absolute;
+  background: rgb(0 0 0 / 0.24);
+}
+.tmcard .chip::before { inset: 0 49% 0 49%; }
+.tmcard .chip::after { inset: 47% 0 47% 0; }
+.tmcard .pan {
+  position: absolute;
+  z-index: 2;
+  left: 13px;
+  bottom: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.92);
+  letter-spacing: 0.04em;
+}
+.tmcard .pan i {
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.62);
+}
+.tmcard .pan i:nth-of-type(4) { margin-right: 5px; }
+
+/* the one lit object */
+.strip[data-lead] .tmcard {
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.4),
+    0 0 0 1px hsl(var(--th, 262) 60% 62% / 0.34),
+    0 2px 26px -4px hsl(var(--th, 262) 72% 58% / 0.5),
+    0 8px 48px -10px hsl(var(--th, 262) 72% 56% / 0.34);
+}
+.strip[data-lead] .tmcard::after { border-color: rgb(255 255 255 / 0.8); }
+.strip[data-lead] .tmcard .face { opacity: 0.76; }
+
+/* ── the register ──────────────────────────────────────────────────────── */
+.readbank { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.ascii { padding: 13px 14px 11px; border-bottom: 1px solid var(--p-rule); min-width: 0; }
+.ascii .k { margin-bottom: 8px; }
+.glyphs {
+  display: flex;
+  font-size: 24px;
+  line-height: 1;
+  height: 24px;
+  align-items: center;
+  color: var(--p-ink);
+}
+.glyphs i { flex: 1; text-align: center; font-style: normal; min-width: 0; }
+.glyphs i[data-off] { color: var(--p-faint); }
+.glyphs i[data-now] { color: var(--p-live); }
+.ascii .scale { display: flex; font-size: 10px; color: var(--p-faint); margin-top: 6px; }
+.ascii .scale span:last-child { margin-left: auto; }
+
+.figs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.figs > div { padding: 11px 14px 12px; border-right: 1px solid var(--p-rule); min-width: 0; }
+.figs > div:last-child { border-right: 0; }
+.figs .v {
+  font-size: 15px;
+  color: var(--p-ink);
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.figs .v.q { color: var(--p-mid); }
+
+/* Unfilled ranks stay ruled, so a two-member board reads as a register with
+ * room in it rather than as a page that ran out. */
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+  height: 34px;
+  border-bottom: 1px solid var(--p-rule);
+  font-size: 11px;
+  color: var(--p-faint);
+}
+.slot em { font-style: normal; letter-spacing: 0.06em; }
+.filler {
+  flex: 1;
+  min-height: 34px;
+  background: repeating-linear-gradient(180deg, transparent 0 33px, var(--p-rule) 33px 34px);
+}
+.noneyet { padding: 22px 14px; font-size: 11px; color: var(--p-dim); }
+.pfoot {
+  display: flex;
+  gap: 22px;
+  padding: 11px 14px;
+  font-size: 10px;
+  color: var(--p-dim);
+  border-top: 1px solid var(--p-rule-2);
+}
+.pfoot span:last-child { margin-left: auto; }
+
+/* ── gauge and scope ───────────────────────────────────────────────────── */
+.gauge { padding: 18px 16px 14px; border-bottom: 1px solid var(--p-rule-2); }
+.gauge svg { display: block; width: 100%; height: 158px; margin-top: 10px; }
+.gauge .arc { fill: none; stroke: var(--p-rule-2); stroke-width: 1; }
+.gauge .tick { stroke: var(--p-faint); stroke-width: 1; }
+.gauge .tick.maj { stroke: var(--p-dim); }
+.gauge .lbl { fill: var(--p-faint); font-size: 9px; }
+.gauge .needle { stroke: var(--p-live); stroke-width: 1.5; }
+.gauge .ghost { stroke: var(--p-dim); stroke-width: 1; stroke-dasharray: 2 3; }
+.gauge .hub { fill: var(--p-live); }
+.gauge .read { display: flex; align-items: baseline; gap: 9px; margin-top: 2px; }
+.gauge .read b { font-size: 29px; line-height: 1.2; color: var(--p-ink); font-weight: 500; }
+.gauge .read span { font-size: 10px; color: var(--p-dim); }
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 10px;
+  color: var(--p-dim);
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid var(--p-rule);
+}
+.legend i {
+  display: inline-block;
+  width: 14px; height: 1px;
+  vertical-align: middle;
+  margin-right: 6px;
+  background: var(--p-live);
+}
+.legend .g i { background: var(--p-dim); }
+
+.scope { padding: 15px 16px 16px; }
+.scope .k { margin-bottom: 9px; }
+.scope svg { display: block; width: 100%; height: 96px; }
+.scope .grid-l { stroke: var(--p-rule); stroke-width: 1; }
+.scope .wave { fill: none; stroke: var(--p-ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.scope .wave.b { stroke: var(--p-dim); }
+.scope .now { stroke: var(--p-live); stroke-width: 1; }
+.scope .ax { display: flex; font-size: 10px; color: var(--p-faint); margin-top: 7px; }
+.scope .ax span:last-child { margin-left: auto; }
+
+/* ── the plate at other sizes ──────────────────────────────────────────────
+ * The rail folds under the register before the columns get too narrow to
+ * read; then the strip unstacks; then the figure bank drops to two up. The
+ * register keeps all thirty cells at every size, because losing days would
+ * change what the instrument says.
+ * ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1300px) {
+  /* Five figures in the bank plus a side rail leaves each cell about eighty
+   * pixels, which is exactly where "$6,180.50" starts clipping. Tighten the
+   * cell rather than dropping a column: the numbers are the point. */
+  .figs > div { padding: 11px 10px 12px; }
+  .figs .v { font-size: 13px; }
+}
+
+@media (max-width: 1180px) {
+  .pgrid { grid-template-columns: minmax(0, 1fr) 288px; }
+  .strip { grid-template-columns: 264px minmax(0, 1fr); }
+  .tmcard { width: 112px; }
+}
+
+@media (max-width: 1000px) {
+  .pgrid { grid-template-columns: minmax(0, 1fr); }
+  .pside {
+    border-left: 0;
+    border-top: 1px solid var(--p-rule-2);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .gauge { border-bottom: 0; border-right: 1px solid var(--p-rule); }
+  .filler { min-height: 0; }
+}
+
+@media (max-width: 760px) {
+  .mods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mod:nth-child(2n) { border-right: 0; }
+  .strip { grid-template-columns: minmax(0, 1fr); }
+  .who { border-right: 0; border-bottom: 1px solid var(--p-rule); }
+  .figs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .figs > div:nth-child(3n) { border-right: 0; }
+  .figs > div:nth-child(n + 4) { border-top: 1px solid var(--p-rule); }
+  .glyphs { font-size: 18px; height: 18px; }
+  .pside { grid-template-columns: minmax(0, 1fr); }
+  .gauge { border-right: 0; border-bottom: 1px solid var(--p-rule); }
+}
+
+@media (max-width: 520px) {
+  .pbar { flex-wrap: wrap; }
+  .pbar .ptxt { display: none; }
+  .pbar .end { margin-left: 0; border-left: 0; }
+  .figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .figs > div:nth-child(3n) { border-right: 1px solid var(--p-rule); }
+  .figs > div:nth-child(2n) { border-right: 0; }
+  .figs > div:nth-child(n + 3) { border-top: 1px solid var(--p-rule); }
+  .glyphs { font-size: 13px; height: 14px; }
+  .ascii .u { display: none; }
+  .tmcard { width: 96px; }
+  .tmcard .pan { font-size: 9px; left: 10px; bottom: 8px; }
+  .tmcard .wm { top: 9px; left: 10px; font-size: 5px; }
+  .tmcard .chip { width: 13px; height: 10px; }
+  .mod .v { font-size: 19px; }
+}
