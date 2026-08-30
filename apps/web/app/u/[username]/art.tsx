@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { paintChart, paintWorld } from "@/lib/console/art";
 import { denseDays, usd, type DayRow } from "@/lib/console/board";
-import { isoDate, shiftDays } from "@/lib/streak";
 
 /** The member's world. Seeded from their hue, so it is theirs and it is stable. */
 export function World({ hue, seed, kind }: { hue: number; seed: number; kind: string }) {
@@ -63,7 +62,10 @@ export function SpendChart({ days, hue }: { days: DayRow[]; hue: number }) {
     // the label to the day made it lurch between columns.
     setHover({
       x: Math.min(box.width, Math.max(0, event.clientX - box.left)),
-      date: isoDate(shiftDays(new Date(), i - (series.length - 1))),
+      // Read off the series rather than recomputing: a fresh `new Date()` on
+      // every pointer move disagrees with the memoised series once the clock
+      // crosses midnight, and the axis label would say otherwise.
+      date: series[i]?.date ?? "",
       cost: series[i]?.cost ?? 0,
     });
   }

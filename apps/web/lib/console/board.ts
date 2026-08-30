@@ -127,6 +127,11 @@ export function sparkline(days: DayRow[], today = new Date()): SparkCell[] {
   }));
 }
 
+export interface DenseDay {
+  date: string;
+  cost: number;
+}
+
 /**
  * A dense 30-day series, zero-filled.
  *
@@ -134,11 +139,14 @@ export function sparkline(days: DayRow[], today = new Date()): SparkCell[] {
  * sparse or single-day series produces NaN and draws nothing. A new member has
  * exactly that, which is why the chart was blank rather than flat.
  */
-export function denseDays(days: DayRow[], span = 30, today = new Date()): { cost: number }[] {
+export function denseDays(days: DayRow[], span = 30, today = new Date()): DenseDay[] {
   const byDate = new Map(days.map((d) => [d.usage_date, Number(d.cost_usd)]));
-  return Array.from({ length: span }, (_, i) => ({
-    cost: byDate.get(isoDate(shiftDays(today, i - (span - 1)))) ?? 0,
-  }));
+  return Array.from({ length: span }, (_, i) => {
+    // The date was already computed here to key the lookup and then thrown
+    // away, so the chart's start-of-window label read `undefined`. Kept.
+    const date = isoDate(shiftDays(today, i - (span - 1)));
+    return { date, cost: byDate.get(date) ?? 0 };
+  });
 }
 
 export const usd = (n: number) =>
