@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { requireMember } from "@/lib/auth";
 import { loadBoard, loadMember } from "@/lib/console/load";
 import {
-  classOf,
   costPerKiloLine,
   denseDays,
   dur,
@@ -15,24 +14,11 @@ import {
 } from "@/lib/console/board";
 import { maxDowntimeSeconds, type ActivityDay } from "@/lib/downtime";
 import { Shell } from "../../console/shell";
-import { GaugePanel, Register, Scope } from "../../console/charts";
+import { Scope } from "../../console/charts";
+import { Chip, Chips, Fig, Ring, ScaleBar, SegBar, Sticker, Sub, Tile } from "../../console/bevel";
 import { HueDrift } from "../../console/hue";
 
 export const dynamic = "force-dynamic";
-
-/** One module, with the plate's anatomy: key left, unit right, figure below. */
-function Mod({ k, u, v, n, sm }: { k: string; u?: string; v: string; n?: string; sm?: boolean }) {
-  return (
-    <div className="mod">
-      <div className="k">
-        {k}
-        {u && <span className="u">{u}</span>}
-      </div>
-      <div className={sm ? "v sm" : "v"}>{v}</div>
-      {n && <div className="n">{n}</div>}
-    </div>
-  );
-}
 
 export default async function ProfilePage({
   params,
@@ -48,7 +34,6 @@ export default async function ProfilePage({
   if (!member.isListed && !isSelf) notFound();
 
   const t = total(member.days);
-  const [className, classNote] = classOf(member.days);
   const board = await loadBoard();
   const ranked = board
     .map((m) => ({ u: m.username, cost: total(m.days).cost }))
@@ -62,151 +47,191 @@ export default async function ProfilePage({
   const pot = board.reduce((a, m) => a + total(m.days).cost, 0);
   const today = total(windowDays(member.days, "1d"));
   const days = denseDays(member.days, 30);
+  const share = Math.round((t.cost / Math.max(1, pot)) * 100);
+
+  /* Every comparison on this page is computed from data already loaded. The app
+   * fetches a 30 day window only (loadMember: since = today - 29), so there is
+   * no previous period to diff against and none is shown. */
+  const boardRates = board
+    .map((m) => {
+      const mt = total(m.days);
+      return costPerKiloLine(mt.cost, mt.linesAdded);
+    })
+    .filter((r): r is number => r !== null);
+  const boardRate =
+    boardRates.length > 0 ? boardRates.reduce((a, b) => a + b, 0) / boardRates.length : null;
+  const rateCeiling = Math.max(1, ...boardRates, rate ?? 0) * 1.2;
+
+  const topModel = member.mix[0];
+  const topModelPc = topModel ? Math.round((topModel[1] / Math.max(1, mixTotal)) * 100) : 0;
+  const streak = streakOf(member.days);
 
   return (
     <Shell active={`/u/${viewer.username}`} pot={pot} members={board.length} me={viewer}>
       <HueDrift hue={member.hue} />
       <section className="view on" id="lineup">
-        <div className="plate">
-          <span className="mark-tr" aria-hidden="true" />
-          <span className="mark-bl" aria-hidden="true" />
-          <span className="scan" aria-hidden="true" />
-
-          <div className="pbar">
-            <Link href="/" className="pback" aria-label="Back to the leaderboard">
+        <div className="bevel">
+          <div className="bhead">
+            {member.avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img className="bav" src={member.avatarUrl} alt="" />
+            ) : (
+              <span className="bav" />
+            )}
+            <div>
+              <h1>{member.displayName ?? member.username}</h1>
+              <div className="bm">
+                {rank > 0 ? `rank ${rank} of ${ranked.length}` : "unranked"} ·{" "}
+                {member.devices.length} {member.devices.length === 1 ? "machine" : "machines"} ·{" "}
+                {t.peak} agents at peak
+              </div>
+            </div>
+            <Link href="/" className="bback">
               ← board
             </Link>
-            <span className="ptxt">
-              {rank > 0 ? `rank ${String(rank).padStart(2, "0")}/${ranked.length}` : "unranked"}
-            </span>
-            <span className="ptxt">win 30d</span>
-            <span className="end">
-              <i className="led" aria-hidden="true" />
-              {member.username}
-            </span>
           </div>
 
-          <h1 className="sr-only">{member.displayName ?? member.username}, rank {rank}</h1>
+          <div className="bgrid">
+            <Tile icon="cursor" title="Spend" span={2}>
+              <Fig v={usd(t.cost)} />
+              <Sub>{share}% of the ${Math.round(pot).toLocaleString("en-US")} pool</Sub>
+              <SegBar costs={days.map((d) => d.cost)} />
+              <Chips>
+                <Chip tone="n">{t.active} of 30 days active</Chip>
+                {streak > 0 && <Chip tone="up">{streak} day streak</Chip>}
+              </Chips>
+            </Tile>
 
-          <div className="pgrid">
-            <div className="pcol">
-              <div className="idstrip">
-                <span className="rk">{rank > 0 ? String(rank).padStart(2, "0") : "--"}</span>
-                {member.avatarUrl && (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img className="pfp" src={member.avatarUrl} alt="" />
-                )}
-                <span className="nm">
-                  <b>{member.displayName ?? member.username}</b>
-                  <span>
-                    {className} · {classNote}
-                  </span>
-                </span>
-              </div>
-
-              <div className="mods">
-                <Mod k="spend" u="usd/30d" v={usd(t.cost)} />
-                <Mod k="tokens" u="30d" v={sci(t.tokens)} sm />
-                <Mod k="sessions" u="n" v={String(t.sessions)} n={`${t.interactive} you opened`} sm />
-                <Mod
-                  k="streak"
-                  u="days"
-                  v={`${streakOf(member.days)}d`}
-                  n={`${t.active} of 30 active`}
-                  sm
-                />
-              </div>
-
-              <Register days={days} />
-
-              <div className="mods">
-                <Mod k="in field" u="peak" v={String(t.peak)} n="concurrent agents" sm />
-                <Mod
-                  k="lines"
-                  u="added"
-                  v={t.linesAdded > 0 ? t.linesAdded.toLocaleString("en-US") : "—"}
-                  n={t.linesAdded > 0 ? "agent-assisted" : isSelf ? "run tokenmax to fill this in" : "not synced"}
-                  sm
-                />
-                <Mod k="commits" u="claude trailer" v={String(t.commits)} sm />
-                <Mod k="projects" u="busiest day" v={String(t.projects)} sm />
-              </div>
-
-              <div className="mods">
-                <Mod k="today" u="usd" v={usd(today.cost)} n={`${sci(today.tokens)} tokens`} sm />
-                <Mod k="longest quiet" u="between turns" v={dur(quiet)} sm />
-                <Mod
-                  k="machines"
-                  u="n"
-                  v={String(member.devices.length)}
-                  n={member.devices.length === 1 ? "reporting" : "reporting"}
-                  sm
-                />
-                <Mod k="pool share" u="of board" v={`${Math.round((t.cost / Math.max(1, pot)) * 100)}%`} sm />
-              </div>
-
-              {/* A machine name is the owner's business and nobody else's. */}
-              {isSelf && (
-                <div className="modwide">
-                  <div className="k">
-                    your machines<span className="u">last seen</span>
-                  </div>
-                  <div className="rigs">
-                    {member.devices.length === 0 && <div className="rig">nothing reporting yet</div>}
-                    {member.devices.map((d) => (
-                      <div className="rig" key={d.name + d.lastSeenAt}>
-                        <span className="n">{d.name}</span>
-                        <span className="a">{d.lastSeenAt.slice(0, 10)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            <Tile icon="spark" title="Cost per 1,000 lines">
+              <Fig v={rate === null ? "—" : usd(rate)} />
+              <Sub>
+                {boardRate === null ? "no board average yet" : `board average ${usd(boardRate)}`}
+              </Sub>
+              {rate !== null && (
+                <ScaleBar pct={(rate / rateCeiling) * 100} left="efficient" right="wasteful" />
               )}
+            </Tile>
 
-              <div className="modwide">
-                <div className="k">
-                  model mix<span className="u">share of tokens</span>
-                </div>
-                <div className="mixes">
-                  {member.mix.length === 0 && <div className="rig">no models yet</div>}
-                  {member.mix.slice(0, 3).map(([model, tokens]) => {
-                    const pc = Math.round((tokens / Math.max(1, mixTotal)) * 100);
-                    return (
-                      <div className="mixline" key={model}>
-                        <span className="m">{model}</span>
-                        <span className="track">
-                          <span style={{ width: `${pc}%` }} />
-                        </span>
-                        <span className="p">{pc}%</span>
-                      </div>
-                    );
-                  })}
-                </div>
+            <Tile icon="check" title="Days worked">
+              <Fig v={String(t.active)} u="of 30" />
+              <Sub>longest quiet stretch {dur(quiet)}</Sub>
+              <Chips>
+                <Chip tone="n">{today.cost > 0 ? `${usd(today.cost)} today` : "nothing today"}</Chip>
+              </Chips>
+            </Tile>
+
+            <Tile icon="rocket" title="This month at a glance" span={2}>
+              <div className="brings">
+                <Ring
+                  pct={(t.active / 30) * 100}
+                  colour="var(--bv-lime)"
+                  value={`${Math.round((t.active / 30) * 100)}%`}
+                  label="Days worked"
+                  note={`${t.active} of 30`}
+                />
+                <Ring
+                  pct={share}
+                  colour="var(--bv-orange)"
+                  value={`${share}%`}
+                  label="Pool share"
+                  note={`of ${board.length} members`}
+                />
+                <Ring
+                  pct={topModelPc}
+                  colour="var(--bv-peri)"
+                  value={`${topModelPc}%`}
+                  label={topModel ? topModel[0].replace(/^claude-/, "") : "no models"}
+                  note="of all tokens"
+                />
               </div>
+            </Tile>
 
-              <div className="filler" aria-hidden="true" />
-            </div>
+            <Tile icon="spark" title="Tokens burned">
+              <Fig v={sci(t.tokens)} />
+              <Sub>across {t.sessions} sessions</Sub>
+              <Chips>
+                <Chip tone="n">{t.interactive} you opened</Chip>
+              </Chips>
+            </Tile>
 
-            <div className="pcol pside">
-              <GaugePanel
-                hue={member.hue}
-                rates={rate === null ? [] : [{ user: member.username, rate }]}
-                note={rate === null ? undefined : "what this member's output costs"}
+            <Tile icon="check" title="Lines written">
+              <Fig v={t.linesAdded > 0 ? t.linesAdded.toLocaleString("en-US") : "—"} />
+              <Sub>
+                {t.linesAdded > 0
+                  ? `${t.commits} commits · ${t.projects} projects`
+                  : isSelf
+                    ? "run tokenmax to fill this in"
+                    : "not synced"}
+              </Sub>
+            </Tile>
+
+            <div className="bt w4 bscope scope">
+              <div className="bth">
+                <Sticker kind="cursor" />
+                Daily spend
+              </div>
+              <Scope
+                series={[{ user: member.username, costs: days.map((d) => d.cost), lit: true }]}
+                dates={days.map((d) => d.date)}
               />
             </div>
+
+            <Tile icon="spark" title="Model mix" span={2}>
+              <Sub>share of {sci(t.tokens)} tokens</Sub>
+              {member.mix.length === 0 ? (
+                <Sub>no models reported yet</Sub>
+              ) : (
+                <>
+                  <div className="bmix">
+                    {member.mix.slice(0, 3).map(([model, tokens], i) => (
+                      <i
+                        key={model}
+                        style={{
+                          flex: Math.max(1, Math.round((tokens / Math.max(1, mixTotal)) * 100)),
+                          background: ["var(--bv-peri)", "var(--bv-lime)", "var(--bv-gold)"][i],
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div className="bmixleg">
+                    {member.mix.slice(0, 3).map(([model, tokens], i) => (
+                      <span key={model}>
+                        <s style={{ background: ["var(--bv-peri)", "var(--bv-lime)", "var(--bv-gold)"][i] }} />
+                        <b>{Math.round((tokens / Math.max(1, mixTotal)) * 100)}%</b> {model}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+            </Tile>
+
+            <Tile icon="rocket" title="Agents at once">
+              <Fig v={String(t.peak)} />
+              <Sub>peak concurrent this window</Sub>
+            </Tile>
+
+            <Tile icon="check" title="Sessions">
+              <Fig v={String(t.sessions)} />
+              <Sub>{t.interactive} you opened yourself</Sub>
+            </Tile>
+
+            {/* A machine name is the owner's business and nobody else's. */}
+            {isSelf && (
+              <Tile icon="rocket" title="Your machines" span={4}>
+                <div className="brigs">
+                  {member.devices.length === 0 && <Sub>nothing reporting yet</Sub>}
+                  {member.devices.map((d) => (
+                    <div className="brig" key={d.name + d.lastSeenAt}>
+                      <span className="n">{d.name}</span>
+                      <span className="a">last seen {d.lastSeenAt.slice(0, 10)}</span>
+                    </div>
+                  ))}
+                </div>
+              </Tile>
+            )}
           </div>
 
-          <div className="scope">
-            <div className="k">
-              daily spend<span className="u">30d · sample and hold</span>
-            </div>
-            <Scope
-              series={[{ user: member.username, costs: days.map((d) => d.cost), lit: true }]}
-              dates={days.map((d) => d.date)}
-            />
-          </div>
-
-          <div className="pfoot">
+          <div className="bfoot">
             <span>spend is api list-price equivalent, not billed</span>
             <span>{member.username} · 30 day window</span>
           </div>

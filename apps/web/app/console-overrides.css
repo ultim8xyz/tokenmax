@@ -911,3 +911,179 @@ button:focus-visible {
 .nav { border-radius: 0; }
 .nav:hover { background: #0c0e10; }
 .nav.me, .nav.me[aria-current="true"] { background: none; border-color: transparent; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BEVEL
+   Reference lock: Bevel's widget tiles (the dark rounded metric cards with
+   thick rounded-cap ring gauges), plus the orange-cursor sticker icon for the
+   glyph treatment. Both supplied by Misha, 2026-08-30.
+
+   Preserve: one dark rounded tile per metric on a black ground; no page rules
+   and no borders anywhere, the tile IS the grouping; a small sticker glyph
+   beside every tile title; big bold figure, dim supporting line; thick ring
+   arcs with rounded caps on a dark track; small rounded delta chips.
+
+   This direction knowingly overrides three of the standing rules in
+   CLAUDE.md — rounded corners, gradients, and colour-coded state. The
+   reference is the authority here, so gradients stay scoped to gauge arcs,
+   sticker fills and the one scale bar, and never become surfaces.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#lineup:has(.bevel) {
+  --bv-page: #000;
+  --bv-tile: #1c1c1e;
+  --bv-tile2: #232326;
+  --bv-track: #2e2e31;
+  --bv-ink: #fff;
+  --bv-mid: #9a9aa0;
+  --bv-dim: #6a6a70;
+  --bv-orange: #ff7a3d;
+  --bv-gold: #ffc53d;
+  --bv-lime: #a8e04a;
+  --bv-peri: #7b8cff;
+  --bv-green: #37d67a;
+  --bv-red: #ff5f52;
+  --bv-r: 22px;
+  overflow: auto;
+}
+
+.bevel {
+  min-height: 100%;
+  background: var(--bv-page);
+  color: var(--bv-mid);
+  padding: 22px 30px 60px;
+  font-family: var(--ui);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.45;
+}
+
+/* ── head ─────────────────────────────────────────────────────────────── */
+.bhead { display: flex; align-items: center; gap: 14px; padding: 4px 4px 20px; }
+.bav {
+  width: 42px; height: 42px; border-radius: 13px;
+  background: var(--bv-tile2); flex: none; object-fit: cover;
+}
+.bhead h1 {
+  margin: 0; font-size: 22px; font-weight: 600; line-height: 1.1;
+  color: var(--bv-ink); letter-spacing: -0.02em;
+}
+.bhead .bm { font-size: 13px; color: var(--bv-dim); margin-top: 2px; }
+.bback {
+  margin-left: auto; font-size: 13px; color: var(--bv-mid); text-decoration: none;
+  padding: 8px 14px; border-radius: 11px; background: var(--bv-tile);
+  transition: color 0.18s var(--ease), background 0.18s var(--ease);
+}
+@media (hover: hover) { .bback:hover { color: var(--bv-ink); background: var(--bv-tile2); } }
+
+/* ── the grid. Tiles are the only container on the page. ──────────────── */
+.bgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.bt {
+  background: var(--bv-tile);
+  border-radius: var(--bv-r);
+  padding: 18px 20px 20px;
+  min-height: 172px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.bt.w2 { grid-column: span 2; }
+.bt.w4 { grid-column: span 4; }
+
+.bth {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 13.5px; font-weight: 500; color: var(--bv-ink);
+}
+.bth .ic { width: 23px; height: 23px; flex: none; }
+
+.bfig {
+  margin-top: 12px; font-size: 33px; font-weight: 700; line-height: 1.05;
+  color: var(--bv-ink); letter-spacing: -0.025em;
+}
+.bfig small {
+  font-size: 15px; font-weight: 500; color: var(--bv-dim);
+  letter-spacing: 0; margin-left: 5px;
+}
+.bsub { margin-top: 3px; font-size: 13px; color: var(--bv-dim); }
+
+.bchips { display: flex; gap: 7px; margin-top: auto; padding-top: 14px; flex-wrap: wrap; }
+.bchip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 8px; }
+.bchip.up { background: #12301f; color: var(--bv-green); }
+.bchip.dn { background: #331617; color: var(--bv-red); }
+.bchip.n  { background: #26262a; color: var(--bv-mid); }
+
+/* one cell per day, lit on the days that cost something */
+.bseg { display: flex; gap: 2.5px; height: 26px; margin-top: 18px; }
+.bseg i { flex: 1; border-radius: 2px; background: var(--bv-track); }
+.bseg i.warm { background: #8c4526; }
+.bseg i.hot  { background: var(--bv-orange); }
+
+.bscale {
+  height: 9px; border-radius: 5px; margin-top: auto; position: relative;
+  background: linear-gradient(90deg, var(--bv-orange), var(--bv-gold), var(--bv-lime));
+}
+.bscale u {
+  position: absolute; top: -4px; width: 3px; height: 17px; border-radius: 2px;
+  background: #fff; box-shadow: 0 0 0 2px var(--bv-tile);
+}
+.bscmk { display: flex; justify-content: space-between; font-size: 11px; color: var(--bv-dim); margin-top: 7px; }
+
+.brings { display: flex; justify-content: space-around; align-items: center; gap: 10px; margin-top: 6px; flex: 1; }
+.bring { text-align: center; }
+.bring svg { display: block; }
+.brv { font-size: 19px; font-weight: 700; fill: #fff; letter-spacing: -0.02em; }
+.blab { margin-top: 8px; font-size: 13px; font-weight: 500; color: var(--bv-ink); }
+.blab i { display: block; font-style: normal; font-size: 11.5px; color: var(--bv-dim); font-weight: 400; }
+
+.bmix { display: flex; gap: 3px; height: 26px; margin-top: auto; border-radius: 7px; overflow: hidden; }
+.bmix i { display: block; }
+.bmixleg { display: flex; gap: 18px; margin-top: 11px; font-size: 12px; color: var(--bv-dim); flex-wrap: wrap; }
+.bmixleg s { text-decoration: none; display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; }
+.bmixleg b { color: var(--bv-ink); font-weight: 600; }
+
+.brigs { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.brig { display: flex; justify-content: space-between; gap: 20px; font-size: 13px; }
+.brig .n { color: var(--bv-ink); }
+.brig .a { color: var(--bv-dim); }
+
+/* The Scope keeps its axes and crosshair; it only needs the tile's palette. */
+.bscope { min-height: 260px; }
+/* The svg carries a viewBox, so a max-height pillarboxes it instead of
+ * shrinking it: width has to be what drives the size. */
+.bevel .scopesvg { max-height: none; width: 100%; height: auto; }
+/* This element is both .bt and .scope, and `.bevel .scope` outranks `.bt`, so
+ * it has to restate the tile rather than clear it. */
+.bevel .scope {
+  padding: 18px 20px 20px;
+  border-top: 0;
+  background: var(--bv-tile);
+}
+.bevel .scoperead { padding-left: 2px; }
+.bevel .scope .grid-l, .bevel .scope .grid-v { stroke: #26262a; }
+.bevel .scope .axlbl { fill: var(--bv-dim); }
+.bevel .scopesvg { color: var(--bv-orange); }
+.bevel .scope .ser.lit { color: var(--bv-orange); }
+.bevel .scope .ser.lit .ln { stroke: #ff9a5c; stroke-width: 2; }
+.bevel .scope .peak line { stroke: var(--bv-dim); }
+.bevel .scope .peak text { fill: var(--bv-mid); }
+.bevel .scope .now { stroke: var(--bv-orange); }
+.bevel .scope .cross line { stroke: var(--bv-mid); }
+.bevel .scope .cross .d { fill: var(--bv-tile); stroke: var(--bv-mid); }
+.bevel .scope .cross .d.lit { stroke: var(--bv-orange); }
+.bevel .scoperead { color: var(--bv-dim); }
+
+.bfoot {
+  display: flex; justify-content: space-between; gap: 20px;
+  margin-top: 22px; padding: 0 4px; font-size: 12px; color: var(--bv-dim);
+}
+
+@media (max-width: 1180px) {
+  .bgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bt.w4 { grid-column: span 2; }
+}
+@media (max-width: 720px) {
+  .bevel { padding: 18px 16px 48px; }
+  .bgrid { grid-template-columns: minmax(0, 1fr); }
+  .bt.w2, .bt.w4 { grid-column: span 1; }
+  .brings { flex-wrap: wrap; gap: 18px; }
+  .bfoot { flex-direction: column; gap: 6px; }
+}
