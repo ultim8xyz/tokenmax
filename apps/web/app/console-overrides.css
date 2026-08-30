@@ -1155,3 +1155,134 @@ button:focus-visible {
   .bseg-ctl button { flex: 1; }
   .bspend { font-size: 19px; }
 }
+
+/* ── settings and sign-in, in the same language ───────────────────────────
+ * These two carry working forms and an OAuth flow, so they are restyled
+ * rather than rewritten: the markup is untouched and only the surface moves
+ * to the Bevel palette. Same tiles, same radius, same one accent.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+#settings, #onboard {
+  --bv-page: #000;
+  --bv-tile: #1c1c1e;
+  --bv-tile2: #232326;
+  --bv-ink: #fff;
+  --bv-mid: #9a9aa0;
+  --bv-dim: #6a6a70;
+  --bv-orange: #ff7a3d;
+  background: var(--bv-page);
+  color: var(--bv-mid);
+  font-family: var(--ui);
+  overflow: auto;
+}
+
+/* .setwrap is a centred two-column grid in the study; settings is a short
+ * single column of tiles here. */
+#settings .setwrap {
+  display: block;
+  height: auto;
+  align-content: start;
+  padding: 30px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+#onboard .ob { padding: 30px; max-width: 900px; margin: 0 auto; }
+
+/* every grouped block becomes a tile */
+/* Both carry `backdrop-filter: blur(18px)` and a hairline from the study, which
+ * is what was still glowing after the background was replaced. */
+#settings .srow,
+#settings .big,
+#settings .srow:hover,
+#settings .big:hover {
+  background: var(--bv-tile);
+  border: 0;
+  border-radius: 22px;
+  padding: 20px 22px;
+  margin: 0 0 14px;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transform: none;
+}
+#settings .rows { display: block; }
+#settings .srow .t { color: var(--bv-ink); font-size: 15px; font-weight: 600; }
+#settings .srow .d, #settings .big .k { color: var(--bv-dim); font-size: 13px; }
+#settings .big .k { font-weight: 500; margin-bottom: 12px; }
+
+#settings .field input,
+#settings input[type="text"] {
+  background: var(--bv-tile2);
+  border: 0;
+  border-radius: 12px;
+  color: var(--bv-ink);
+  /* Never below 16px: iOS zooms the page on focus. */
+  font: 400 16px var(--ui);
+  padding: 11px 14px;
+}
+#settings .cmd button,
+#settings .field button {
+  background: var(--bv-tile2);
+  border: 0;
+  border-radius: 12px;
+  color: var(--bv-ink);
+  font: 500 14px var(--ui);
+  padding: 11px 18px;
+  cursor: pointer;
+  transition: background 0.18s var(--ease);
+}
+@media (hover: hover) {
+  #settings .cmd button:hover, #settings .field button:hover { background: #2c2c31; }
+}
+#settings .rig {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 0; border-top: 1px solid rgb(255 255 255 / 0.05);
+  font-size: 14px;
+}
+#settings .rig:first-child { border-top: 0; }
+#settings .rig .n { color: var(--bv-ink); }
+#settings .rig .a { margin-left: auto; color: var(--bv-dim); font-size: 13px; }
+#settings .rig .d { width: 8px; height: 8px; border-radius: 3px; flex: none; }
+
+/* sign-in */
+#onboard .ob { max-width: 520px; padding-top: 90px; }
+#onboard h2 {
+  font: 600 28px/1.15 var(--ui); color: var(--bv-ink);
+  letter-spacing: -0.02em; margin: 0 0 12px; text-wrap: balance;
+}
+#onboard p { font-size: 15px; line-height: 1.6; color: var(--bv-mid); margin: 0 0 26px; text-wrap: pretty; }
+/* "Step 01 of 02" in tracked small caps is the tell this file exists to avoid;
+ * the two dots already say where you are. */
+#onboard .steps span { display: none; }
+#onboard .steps { display: flex; gap: 6px; margin-bottom: 26px; }
+#onboard .steps i {
+  /* the study gives these flex:1, which stretches them across the column */
+  flex: none;
+  width: 26px; height: 3px; border-radius: 2px;
+  background: var(--bv-tile2); display: block;
+}
+#onboard .steps i.on { background: var(--bv-orange); }
+#onboard .gh {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; color: #000; border: 0; border-radius: 14px;
+  font: 600 15px var(--ui); padding: 14px 20px; cursor: pointer; width: 100%;
+  justify-content: center;
+  transition: opacity 0.18s var(--ease);
+}
+#onboard .gh:disabled { opacity: 0.55; cursor: default; }
+@media (hover: hover) { #onboard .gh:not(:disabled):hover { opacity: 0.88; } }
+#onboard .gh:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bv-page), 0 0 0 4px var(--bv-orange);
+}
+#onboard .wait {
+  display: flex; align-items: center; gap: 10px; margin-top: 18px;
+  background: var(--bv-tile); border-radius: 14px; padding: 13px 16px;
+  font-size: 13.5px; color: var(--bv-mid);
+}
+#onboard .wait .d { width: 8px; height: 8px; border-radius: 3px; background: var(--bv-orange); flex: none; }
+
+@media (max-width: 720px) {
+  #settings .setwrap, #onboard .ob { padding: 20px 16px; }
+  #onboard .ob { padding-top: 54px; }
+}
