@@ -13,8 +13,8 @@ import {
   type MemberRow,
   type WindowKey,
 } from "@/lib/console/board";
-import { setHue } from "./console/hue";
-import { GaugePanel, Register, Scope } from "./console/charts";
+import { Scope } from "./console/charts";
+import { Chip, Chips, Fig, Ring, SegBar, Sticker, Sub, Tile } from "./console/bevel";
 
 /**
  * The board, switched in the browser.
@@ -23,9 +23,9 @@ import { GaugePanel, Register, Scope } from "./console/charts";
  * nothing extra to give: making the switch a navigation meant two auth round
  * trips to re-render numbers already in the page.
  *
- * The plate is one instrument face: modules butt together on shared rules and
- * every module carries the same anatomy. Exactly one surface on it is glass —
- * the gauge — because that is the reading the whole board argues about.
+ * Same Bevel language as a member page — one dark tile per thing, a sticker
+ * glyph on every title, no rules and no borders. A member is a tile you can
+ * click into rather than a row in a table.
  */
 
 export function Board({ members, initial }: { members: MemberRow[]; initial: WindowKey }) {
@@ -56,18 +56,24 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
     .map(({ m, t }) => ({ user: m.username, rate: costPerKiloLine(t.cost, t.linesAdded) }))
     .filter((r): r is { user: string; rate: number } => r.rate !== null)
     .sort((a, b) => a.rate - b.rate);
+  const bestRate = rates[0] ?? null;
+  const avgRate =
+    rates.length > 0 ? rates.reduce((a, r) => a + r.rate, 0) / rates.length : null;
 
   const slots = Math.max(0, 6 - rows.length);
+  const leader = rows[0] ?? null;
 
   return (
     <section className="view on" id="lineup">
-      <div className="plate">
-        <span className="mark-tr" aria-hidden="true" />
-        <span className="mark-bl" aria-hidden="true" />
-        <span className="scan" aria-hidden="true" />
-
-        <div className="pbar">
-          <span className="pseg">
+      <div className="bevel">
+        <div className="bhead">
+          <div>
+            <h1>Leaderboard</h1>
+            <div className="bm">
+              {rows.length} member{rows.length === 1 ? "" : "s"} · {label} · ranked by spend
+            </div>
+          </div>
+          <span className="bseg-ctl">
             {WINDOWS.map((x) => (
               <button
                 key={x.key}
@@ -78,141 +84,131 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
               </button>
             ))}
           </span>
-          <span className="ptxt">sort spend/desc</span>
-          <span className="end">
-            <i className="led" aria-hidden="true" />
-            {rows.length} member{rows.length === 1 ? "" : "s"} · {label}
-          </span>
         </div>
 
-        <h1 className="sr-only">Leaderboard, ranked by spend, {label}</h1>
+        <div className="bgrid">
+          <Tile icon="cursor" title={`Pool · ${label}`}>
+            <Fig v={usd(pool)} />
+            <Sub>across {rows.length} member{rows.length === 1 ? "" : "s"}</Sub>
+          </Tile>
 
-        <div className="pgrid">
-          <div className="pcol">
-            <div className="mods">
-              <div className="mod">
-                <div className="k">
-                  pool<span className="u">usd/{label.replace(/\s/g, "")}</span>
+          <Tile icon="check" title="Lines written">
+            <Fig v={lines.toLocaleString("en-US")} />
+            <Sub>agent-assisted</Sub>
+          </Tile>
+
+          <Tile icon="spark" title="Tokens burned">
+            <Fig v={sci(tokens)} />
+            <Sub>{label}</Sub>
+          </Tile>
+
+          <Tile icon="rocket" title="Cost per 1,000 lines">
+            <Fig v={avgRate === null ? "—" : usd(avgRate)} />
+            <Sub>
+              {bestRate ? `${bestRate.user} is cheapest at ${usd(bestRate.rate)}` : "no lines yet"}
+            </Sub>
+          </Tile>
+
+          {rows.map(({ m, t }, i) => {
+            const rate = costPerKiloLine(t.cost, t.linesAdded);
+            const share = Math.round((t.cost / Math.max(1, pool)) * 100);
+            return (
+              <Link
+                key={m.username}
+                href={`/u/${m.username}`}
+                prefetch
+                className="bt w2 bmem"
+                aria-label={`${m.username}, rank ${i + 1}, ${usd(t.cost)}`}
+              >
+                <div className="bmemhead">
+                  <span className="brk">{i + 1}</span>
+                  {m.avatarUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img className="bav sm" src={m.avatarUrl} alt="" />
+                  ) : (
+                    <span className="bav sm" />
+                  )}
+                  <span className="bnm">
+                    <b>{m.displayName ?? m.username}</b>
+                    <i>
+                      {t.devices} machine{t.devices === 1 ? "" : "s"} · {t.active} of 30 days
+                    </i>
+                  </span>
+                  <span className="bspend">{usd(t.cost)}</span>
                 </div>
-                <div className="v">{usd(pool)}</div>
-              </div>
-              <div className="mod">
-                <div className="k">
-                  lines<span className="u">added</span>
-                </div>
-                <div className="v sm">{lines.toLocaleString("en-US")}</div>
-              </div>
-              <div className="mod">
-                <div className="k">
-                  tokens<span className="u">{label.replace(/\s/g, "")}</span>
-                </div>
-                <div className="v sm">{sci(tokens)}</div>
-              </div>
-              <div className="mod">
-                <div className="k">
-                  members<span className="u">n</span>
-                </div>
-                <div className="v sm">{rows.length}</div>
-              </div>
+
+                <SegBar costs={register[i].days.map((d) => d.cost)} />
+
+                <Chips>
+                  <Chip tone="n">{share}% of pool</Chip>
+                  <Chip tone="n">{rate === null ? "no lines" : `${usd(rate)} per 1k lines`}</Chip>
+                  <Chip tone="n">{t.linesAdded.toLocaleString("en-US")} lines</Chip>
+                  <Chip tone="n">{t.commits} commits</Chip>
+                </Chips>
+              </Link>
+            );
+          })}
+
+          {rows.length === 0 && (
+            <div className="bt w4">
+              <Sub>nothing logged in this window</Sub>
             </div>
-
-            <div className="strips">
-              {rows.map(({ m, t }, i) => {
-                const rate = costPerKiloLine(t.cost, t.linesAdded);
-                const reg = register[i].days;
-                return (
-                  <Link
-                    key={m.username}
-                    href={`/u/${m.username}`}
-                    prefetch
-                    className="strip"
-                    data-lead={i === 0 ? "" : undefined}
-                    style={{ "--th": m.hue } as React.CSSProperties}
-                    aria-label={`${m.username}, rank ${i + 1}, ${usd(t.cost)}`}
-                    onPointerEnter={() => setHue(m.hue)}
-                    onFocus={() => setHue(m.hue)}
-                  >
-                    <div className="who">
-                      <span className="rk">{String(i + 1).padStart(2, "0")}</span>
-                      {m.avatarUrl && (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img className="pfp" src={m.avatarUrl} alt="" />
-                      )}
-                      <span className="nm">
-                        <b>{m.displayName ?? m.username}</b>
-                        <span>
-                          {t.devices} machine{t.devices === 1 ? "" : "s"} · {t.active}/30d active
-                        </span>
-                      </span>
-                    </div>
-
-                    <div className="readbank">
-                      <Register days={reg} />
-                      <div className="figs">
-                        <div>
-                          <div className="k">tokens</div>
-                          <div className="v q">{sci(t.tokens)}</div>
-                        </div>
-                        <div>
-                          <div className="k">lines</div>
-                          <div className="v q">{t.linesAdded.toLocaleString("en-US")}</div>
-                        </div>
-                        <div>
-                          <div className="k">commits</div>
-                          <div className="v q">{t.commits}</div>
-                        </div>
-                        <div>
-                          <div className="k">$/1k lines</div>
-                          <div className="v">{rate === null ? "—" : usd(rate)}</div>
-                        </div>
-                        <div>
-                          <div className="k">spend</div>
-                          <div className="v">{usd(t.cost)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-
-              {rows.length === 0 && <div className="noneyet">nothing logged in this window</div>}
-            </div>
-
-            <div className="slots">
-              {Array.from({ length: slots }, (_, i) => (
-                <div className="slot" key={i}>
-                  <span>{String(rows.length + i + 1).padStart(2, "0")}</span>
-                  <em>open</em>
-                </div>
-              ))}
-            </div>
-            <div className="filler" aria-hidden="true" />
-          </div>
-
-          <div className="pcol pside">
-            <GaugePanel hue={members[0]?.hue ?? 262} rates={rates} />
-          </div>
-        </div>
-
-        {/* The scope gets the full width of the plate. A chart squeezed into a
-         *  side rail is a decoration, not an instrument. */}
-        <div className="scope">
-          <div className="k">
-            daily spend<span className="u">30d · sample and hold · all members</span>
-          </div>
-          {dates.length > 0 && (
-            <Scope
-              series={register.map((r, i) => ({
-                user: r.user,
-                costs: r.days.map((d) => d.cost),
-                lit: i === 0,
-              }))}
-              dates={dates}
-            />
           )}
+
+          {leader && (
+            <Tile icon="rocket" title="The board at a glance" span={2}>
+              <div className="brings">
+                <Ring
+                  pct={Math.round((leader.t.cost / Math.max(1, pool)) * 100)}
+                  colour="var(--bv-orange)"
+                  value={`${Math.round((leader.t.cost / Math.max(1, pool)) * 100)}%`}
+                  label={leader.m.username}
+                  note="of the pool"
+                />
+                <Ring
+                  pct={(rows.filter((r) => r.t.linesAdded > 0).length / Math.max(1, rows.length)) * 100}
+                  colour="var(--bv-lime)"
+                  value={`${rows.filter((r) => r.t.linesAdded > 0).length}/${rows.length}`}
+                  label="Reporting lines"
+                  note="members synced"
+                />
+                <Ring
+                  pct={(rows.length / 6) * 100}
+                  colour="var(--bv-peri)"
+                  value={`${rows.length}`}
+                  label="Members"
+                  note={slots > 0 ? `${slots} slots open` : "board full"}
+                />
+              </div>
+            </Tile>
+          )}
+
+          {dates.length > 0 && (
+            <div className="bt w4 bscope scope">
+              <div className="bth">
+                <Sticker kind="cursor" />
+                Daily spend
+              </div>
+              <Scope
+                series={register.map((r, i) => ({
+                  user: r.user,
+                  costs: r.days.map((d) => d.cost),
+                  lit: i === 0,
+                }))}
+                dates={dates}
+              />
+            </div>
+          )}
+
+          {Array.from({ length: slots }, (_, i) => (
+            <div className="bt bslot" key={i}>
+              <span className="brk">{rows.length + i + 1}</span>
+              <em>open</em>
+            </div>
+          ))}
         </div>
 
-        <div className="pfoot">
+        <div className="bfoot">
           <span>spend is api list-price equivalent, not billed</span>
           <span>
             n={rows.length}

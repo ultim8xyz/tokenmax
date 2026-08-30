@@ -1087,3 +1087,71 @@ button:focus-visible {
   .brings { flex-wrap: wrap; gap: 18px; }
   .bfoot { flex-direction: column; gap: 6px; }
 }
+
+/* ── the board in the same language ───────────────────────────────────────
+ * A member is a tile you click into, not a row in a table. Rank, face, name
+ * and spend on one line; the 30 day register under it; the rest as chips.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+/* window switcher, the one segmented control on the page */
+.bseg-ctl {
+  margin-left: auto;
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 13px;
+  background: var(--bv-tile);
+}
+.bseg-ctl button {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--bv-mid);
+  font: 500 13px var(--ui);
+  padding: 7px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: color 0.18s var(--ease), background 0.18s var(--ease);
+}
+@media (hover: hover) { .bseg-ctl button:hover { color: var(--bv-ink); } }
+.bseg-ctl button[aria-pressed="true"] { color: var(--bv-ink); background: var(--bv-tile2); }
+
+/* a member tile */
+.bmem { text-decoration: none; color: inherit; transition: background 0.2s var(--ease); }
+@media (hover: hover) { .bmem:hover { background: var(--bv-tile2); } }
+.bmem:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bv-page), 0 0 0 4px var(--bv-orange);
+}
+
+.bmemhead { display: flex; align-items: center; gap: 12px; }
+.brk {
+  font-size: 13px; font-weight: 600; color: var(--bv-dim);
+  min-width: 1.5ch; font-variant-numeric: tabular-nums;
+}
+.bav.sm { width: 34px; height: 34px; border-radius: 11px; }
+.bnm { display: flex; flex-direction: column; min-width: 0; }
+.bnm b { font-size: 15px; font-weight: 600; color: var(--bv-ink); letter-spacing: -0.01em; }
+.bnm i { font-style: normal; font-size: 12px; color: var(--bv-dim); }
+.bspend {
+  margin-left: auto; font-size: 23px; font-weight: 700;
+  color: var(--bv-ink); letter-spacing: -0.02em;
+}
+.bmem .bseg { margin-top: 16px; }
+
+/* an unfilled rank. Present, but never competing with a real member. */
+.bslot {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 96px; background: #131315; color: var(--bv-dim);
+}
+.bslot em { font-style: normal; font-size: 13px; }
+
+@media (max-width: 1180px) {
+  .bmem.w2 { grid-column: span 2; }
+}
+@media (max-width: 720px) {
+  .bhead { flex-wrap: wrap; }
+  .bseg-ctl { margin-left: 0; width: 100%; justify-content: space-between; }
+  .bseg-ctl button { flex: 1; }
+  .bspend { font-size: 19px; }
+}
