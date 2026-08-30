@@ -471,6 +471,14 @@ button:focus-visible {
 .pgrid { display: grid; grid-template-columns: minmax(0, 1fr) 336px; flex: 1; }
 .pcol { min-width: 0; display: flex; flex-direction: column; }
 .pside { border-left: 1px solid var(--p-rule-2); }
+/* The rail keeps ruling under the gauge, so a short rail reads as register
+ * space rather than as a column that ran out. */
+.pside::after {
+  content: "";
+  flex: 1;
+  min-height: 34px;
+  background: repeating-linear-gradient(180deg, transparent 0 33px, var(--p-rule) 33px 34px);
+}
 
 .mods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .mod {
@@ -737,6 +745,77 @@ button:focus-visible {
 .scoperead .key.g i { background: var(--p-dim); height: 1px; }
 .scoperead .key b { color: var(--p-ink); font-weight: 500; margin-left: 7px; }
 
+/* ── a member page, on the same plate ─────────────────────────────────────
+ * Same modules, same rules, same instruments. Clicking a row should go one
+ * level into the machine, not into a different product.
+ * ───────────────────────────────────────────────────────────────────────── */
+.pbar .pback { text-decoration: none; color: var(--p-mid); }
+.pbar .pback:hover { color: var(--p-ink); }
+
+.idstrip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid var(--p-rule-2);
+}
+.idstrip .rk { font-size: 15px; font-weight: 500; color: var(--p-ink); }
+.idstrip .pfp {
+  width: 38px; height: 38px;
+  flex: none;
+  border-radius: 3px;
+  border: 1px solid var(--p-rule-2);
+  display: block;
+}
+.idstrip .nm b { display: block; color: var(--p-ink); font-size: 16px; font-weight: 500; }
+.idstrip .nm span { display: block; font-size: 10px; color: var(--p-dim); margin-top: 3px; }
+
+.mod .n { font-size: 10px; color: var(--p-dim); margin-top: 4px; }
+
+.modwide { padding: 13px 14px 15px; border-bottom: 1px solid var(--p-rule-2); }
+.modwide .k {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--p-dim);
+}
+.modwide .u { margin-left: auto; color: var(--p-faint); }
+
+.rigs { margin-top: 10px; }
+.rig {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  font-size: 12px;
+  color: var(--p-ink);
+  border-top: 1px solid var(--p-rule);
+}
+.rig:first-child { border-top: 0; }
+.rig .a { margin-left: auto; color: var(--p-dim); font-size: 11px; }
+
+.mixes { margin-top: 10px; }
+.mixline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+  font-size: 12px;
+  border-top: 1px solid var(--p-rule);
+}
+.mixline:first-child { border-top: 0; }
+.mixline .m { color: var(--p-mid); min-width: 140px; }
+.mixline .track {
+  flex: 1;
+  height: 3px;
+  background: var(--p-rule-2);
+  display: block;
+  min-width: 0;
+}
+.mixline .track > span { display: block; height: 100%; background: var(--p-ink); }
+.mixline .p { color: var(--p-ink); min-width: 4ch; text-align: right; }
+
 /* ── the plate at other sizes ──────────────────────────────────────────────
  * The rail folds under the register before the columns get too narrow to
  * read; then the strip unstacks; then the figure bank drops to two up. The
@@ -759,12 +838,14 @@ button:focus-visible {
 @media (max-width: 1000px) {
   .pgrid { grid-template-columns: minmax(0, 1fr); }
   .pside { border-left: 0; border-top: 1px solid var(--p-rule-2); }
+  .pside::after { display: none; }
   .gauge .gin { max-width: 520px; margin: 0 auto; }
   .filler { min-height: 0; }
 }
 
 @media (max-width: 760px) {
   .mods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mixline .m { min-width: 0; }
   .mod:nth-child(2n) { border-right: 0; }
   .strip { grid-template-columns: minmax(0, 1fr); }
   .who { border-right: 0; border-bottom: 1px solid var(--p-rule); }

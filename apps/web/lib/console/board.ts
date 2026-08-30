@@ -155,6 +155,17 @@ export const usd = (n: number) =>
 export const usd0 = (n: number) =>
   "$" + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
+/**
+ * Scientific notation, which is the register a token count actually lives in.
+ * Lives here beside the other formatters rather than in the chart module,
+ * because a server component has to be able to call it too.
+ */
+export const sci = (n: number) => {
+  if (n <= 0) return "0";
+  const e = Math.floor(Math.log10(n));
+  return `${(n / 10 ** e).toFixed(2)}e${e}`;
+};
+
 export const toks = (n: number) =>
   n >= 1e9 ? (n / 1e9).toFixed(2) + "B"
   : n >= 1e6 ? (n / 1e6).toFixed(1) + "M"
