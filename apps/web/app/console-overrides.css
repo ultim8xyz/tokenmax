@@ -870,3 +870,44 @@ button:focus-visible {
   .scopesvg { max-height: 220px; }
   .mod .v { font-size: 19px; }
 }
+
+/* ── the rail joins the instrument ────────────────────────────────────────
+ * The header was the last surface still running the study's ambience: #wash
+ * is a full-viewport hue bloom driven by --hue, which HueDrift retargets per
+ * page, so the band above the plate came out purple on the board and blue on
+ * a member. One machine cannot have two moods. The plate is opaque, so the
+ * wash only ever showed in the rail band — killing it costs nothing below.
+ *
+ * The gauge keeps its colour: its glass reads --th (the member's own hue),
+ * set per instance, and never touched --wash.
+ *
+ * ponytail: the Sky canvas is hidden here rather than unmounted, so its rAF
+ * loop still redraws 190 stars a frame behind an opaque plate. Pull <Sky />
+ * and <div id="wash"> out of app/layout.tsx once the preview shims in that
+ * file land, so the two changes do not have to share a commit.
+ * ───────────────────────────────────────────────────────────────────────── */
+#wash,
+#sky { display: none; }
+
+/* Literal hex, not --p-bg / --p-rule-2: those live on #lineup, and the rail
+ * is the plate's sibling, not its child. Keep the two in step by hand. */
+.rail {
+  background: #070809;
+  border-bottom: 1px solid #252b31;
+}
+.brand em { color: #e6ebf0; }
+
+/* The active nav was a solid white pill. Against the study's bloom it read as
+ * a pill; against a matte rail it is the brightest object on the screen, and
+ * the plate allows exactly one of those — the gauge. Same pressed state the
+ * status strip already uses, and no radius, because nothing on a faceplate
+ * has one. */
+.nav[aria-current="true"] {
+  color: #e6ebf0;
+  background: #101317;
+  border-color: #252b31;
+  border-radius: 0;
+}
+.nav { border-radius: 0; }
+.nav:hover { background: #0c0e10; }
+.nav.me, .nav.me[aria-current="true"] { background: none; border-color: transparent; }

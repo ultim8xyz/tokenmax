@@ -25,17 +25,16 @@ export function Shell({ active, pot, members, hints, me, children }: Props) {
         <Link href="/" className="brand" aria-label="Leaderboard">
           TOKEN<em>MAX</em>
         </Link>
-        <div className="pot">
-          POOL{" "}
-          <b>
-            {pot === undefined ? (
-              "—"
-            ) : (
-              <Rolling value={pot} format="usd0" />
-            )}
-          </b>
-          &nbsp;/&nbsp; <b>{members ?? "—"}</b> MEMBERS
-        </div>
+        {/* The board's own plate already carries pool and members as modules,
+            so the rail would print the same two figures a row above them.
+            A screen states a number once. Pages without those modules still
+            pass `pot` and get the rail copy. */}
+        {pot !== undefined && (
+          <div className="pot">
+            POOL <b><Rolling value={pot} format="usd0" /></b>
+            &nbsp;/&nbsp; <b>{members ?? "—"}</b> MEMBERS
+          </div>
+        )}
         <nav className="navs">
           {VIEWS.map(([href, label]) => (
             <Link

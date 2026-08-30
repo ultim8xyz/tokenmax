@@ -1,6 +1,6 @@
 import { requireMember } from "@/lib/auth";
 import { loadBoard } from "@/lib/console/load";
-import { parseWindow, total } from "@/lib/console/board";
+import { parseWindow } from "@/lib/console/board";
 import { Shell } from "./console/shell";
 import { HueDrift } from "./console/hue";
 import { Board } from "./board";
@@ -15,10 +15,9 @@ export default async function Home({
   const me = await requireMember("/");
   const { w } = await searchParams;
   const members = await loadBoard();
-  const pot = members.reduce((a, m) => a + total(m.days).cost, 0);
 
   return (
-    <Shell active="/" pot={pot} members={members.length} me={me}>
+    <Shell active="/" me={me}>
       <HueDrift hue={members[0]?.hue ?? 210} />
       <Board members={members} initial={parseWindow(w)} />
     </Shell>
