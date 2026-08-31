@@ -1914,13 +1914,13 @@ button:focus-visible {
  * field inside a tile.
  * ───────────────────────────────────────────────────────────────────────── */
 #settings { background: #000; overflow: auto; }
+/* Only the surface here, never layout. The :hover half is needed to beat
+ * .srow:hover in console.css, but it also outranks every plain-class rule
+ * further down this file — so a column count or a margin declared here won
+ * back the moment the cursor landed, and the row relaid itself under the
+ * pointer: the button jumped out of the tile and the row shifted 2px. */
 #settings .srow,
 #settings .srow:hover {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
-  align-items: center;
-  margin-top: 14px;
   padding: 0;
   background: none;
   border: 0;
@@ -1929,6 +1929,12 @@ button:focus-visible {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
+#settings .srow { display: grid; align-items: center; }
+/* The frost rim is a pseudo-element, so zeroing the row's own border and
+ * box-shadow above never touched it: it kept drawing its 1px inset ring, and
+ * with the row's radius and padding now at 0 it read as a stray square box
+ * around the label and the control. The tile is the surface here. */
+#settings .srow::after { display: none; }
 #settings .srow .t { display: none; }        /* the tile title already says it */
 #settings .srow .d { color: #9a9aa0; font: 400 13px var(--ui); margin: 0; }
 #settings .field input,
