@@ -929,6 +929,7 @@ button:focus-visible {
   --bv-lime: #a8e04a;
   --bv-peri: #7b8cff;
   --bv-green: #37d67a;
+  --bv-cyan: #4fd0e0;
   --bv-red: #ff5f52;
   --bv-r: 22px;
   overflow: auto;
@@ -1126,12 +1127,6 @@ button:focus-visible {
 }
 .bmem .bseg { margin-top: 16px; }
 
-/* an unfilled rank. Present, but never competing with a real member. */
-.bslot {
-  display: flex; align-items: center; gap: 12px;
-  min-height: 96px; background: #131315; color: var(--bv-dim);
-}
-.bslot em { font-style: normal; font-size: 13px; }
 
 @media (max-width: 1180px) {
   .bmem.w2 { grid-column: span 2; }
@@ -1406,23 +1401,19 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 60px 0 30px;
+  gap: 10px;
+  padding: 66px 0 34px;
 }
-.bwm img {
-  width: min(340px, 62%);
-  height: auto;
-  display: block;
-  opacity: 0.9;
-}
-.bwm span { font-size: 12px; color: #4a4a51; }
+.bwmk { display: flex; align-items: center; gap: 12px; opacity: 0.5; }
+.bwmk img { width: 34px; height: 34px; display: block; }
+.bwmk b { font: 700 26px var(--ui); color: #fff; letter-spacing: -0.035em; }
+.bwm span:last-child { font-size: 12px; color: #3d3d43; }
 
 @media (max-width: 720px) {
   .brk { font-size: 22px; }
   .bav.sm { width: 38px; height: 38px; border-radius: 12px; }
   .bid .bav { width: 72px; height: 72px; border-radius: 22px; }
   .bid h1 { font-size: 26px; }
-  .bwm img { width: 70%; }
 }
 
 /* .bhead already exists in the study with a blue-tinted hairline under it.
@@ -1432,4 +1423,81 @@ button:focus-visible {
 /* The generated wordmark ships on its own near-black ground, which reads as a
  * box against a pure black page. `screen` drops the dark pixels and leaves the
  * white keyline and the orange fill, so no alpha channel is needed. */
-.bwm img { mix-blend-mode: screen; }
+
+/* Three-wide, so a single tile can stand beside the chart. */
+.bt.w3 { grid-column: span 3; }
+
+/* The glance rings stack when the tile is one column tall instead of two wide. */
+.brings.col {
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  padding: 6px 0 2px;
+}
+
+@media (max-width: 1180px) {
+  .bt.w3 { grid-column: span 2; }
+  .brings.col { flex-direction: row; }
+}
+@media (max-width: 720px) {
+  .bt.w3 { grid-column: span 1; }
+}
+
+/* ── the board is a ranking with a rail, not a wall of tiles ──────────────
+ * One row per member down the main column, then the chart. The four totals
+ * are context, not headlines, so they go small and stacked on the right.
+ * ───────────────────────────────────────────────────────────────────────── */
+.bboard { display: grid; grid-template-columns: minmax(0, 1fr) 268px; gap: 14px; align-items: start; }
+.bmain { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.bmain .bt, .bmain .bmem { grid-column: auto; }
+.bside { display: flex; flex-direction: column; gap: 14px; }
+
+/* compact: a total is a line of context, so it does not get a headline figure */
+.bside .bt { min-height: 0; padding: 15px 17px 16px; }
+.bside .bfig { font-size: 23px; margin-top: 7px; }
+.bside .bth { font-size: 12.5px; }
+.bside .bth .ic { width: 19px; height: 19px; }
+.bside .bsub { font-size: 12px; margin-top: 2px; }
+
+/* a member is a full-width row now */
+.bmem.w2 { grid-column: auto; }
+.bmem { min-height: 0; }
+
+@media (max-width: 1000px) {
+  .bboard { grid-template-columns: minmax(0, 1fr); }
+  .bside { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .bside { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── gold is a rank, not a palette colour ─────────────────────────────────
+ * The brand mark is the blue coin. The gold one appears in exactly one place:
+ * whoever is first. Everywhere else the accent is orange or the neutral ramp.
+ * ───────────────────────────────────────────────────────────────────────── */
+.brk .gold { width: 26px; height: 26px; display: block; }
+.bid .rank { color: #6a6a70; }
+.bid .rank.first { color: #ffc53d; }
+.bid .rank img { width: 19px; height: 19px; display: block; }
+
+/* glance and the chart share one row: a narrow column of rings, then the plot */
+.bpair { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 14px; align-items: stretch; }
+.bpair > .bt { min-height: 0; }
+.bpair .bscope { min-height: 0; }
+@media (max-width: 900px) {
+  .bpair { grid-template-columns: minmax(0, 1fr); }
+  .bpair .brings.col { flex-direction: row; }
+}
+
+/* Stacked, the rings were setting the height of the whole row and leaving the
+ * chart with dead space under it. Smaller ring, tighter stack, label beside
+ * the dial rather than under it. */
+.brings.col { gap: 14px; padding: 10px 0 2px; align-items: stretch; }
+.brings.col .bring { display: flex; align-items: center; gap: 13px; text-align: left; }
+.brings.col .bring svg { width: 62px; height: 62px; flex: none; }
+.brings.col .brv { font-size: 15px; }
+.brings.col .blab { margin-top: 0; font-size: 13px; }
+.bpair .bscope .scopesvg { max-height: none; }
+.bpair.w4 { grid-column: span 4; }
+@media (max-width: 1180px) { .bpair.w4 { grid-column: span 2; } }
+@media (max-width: 720px)  { .bpair.w4 { grid-column: span 1; } }

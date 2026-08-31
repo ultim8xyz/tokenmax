@@ -14,7 +14,7 @@ import {
   type WindowKey,
 } from "@/lib/console/board";
 import { Scope } from "./console/charts";
-import { Chip, Chips, Fig, Icon, Ring, SegBar, Sticker, Sub, Tile } from "./console/bevel";
+import { Chip, Chips, Fig, Ring, SegBar, Sticker, Sub, Tile } from "./console/bevel";
 
 /**
  * The board, switched in the browser.
@@ -86,29 +86,8 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
           </span>
         </div>
 
-        <div className="bgrid">
-          <Tile icon="cursor" title={`Pool · ${label}`}>
-            <Fig v={usd(pool)} />
-            <Sub>across {rows.length} member{rows.length === 1 ? "" : "s"}</Sub>
-          </Tile>
-
-          <Tile icon="check" title="Lines written">
-            <Fig v={lines.toLocaleString("en-US")} />
-            <Sub>agent-assisted</Sub>
-          </Tile>
-
-          <Tile icon="spark" title="Tokens burned">
-            <Fig v={sci(tokens)} />
-            <Sub>{label}</Sub>
-          </Tile>
-
-          <Tile icon="rocket" title="Cost per 1,000 lines">
-            <Fig v={avgRate === null ? "—" : usd(avgRate)} />
-            <Sub>
-              {bestRate ? `${bestRate.user} is cheapest at ${usd(bestRate.rate)}` : "no lines yet"}
-            </Sub>
-          </Tile>
-
+        <div className="bboard">
+          <div className="bmain">
           {rows.map(({ m, t }, i) => {
             const rate = costPerKiloLine(t.cost, t.linesAdded);
             const share = Math.round((t.cost / Math.max(1, pool)) * 100);
@@ -122,7 +101,10 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
               >
                 <div className="bmemhead">
                   <span className="brk">
-                    {i === 0 && <Icon name="trophy" size={15} />}
+                    {i === 0 && (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img className="gold" src="/coin-gold.png" alt="" aria-hidden="true" />
+                    )}
                     {i + 1}
                   </span>
                   {m.avatarUrl ? (
@@ -158,9 +140,13 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
             </div>
           )}
 
+
+
+
+            <div className="bpair">
           {leader && (
-            <Tile icon="rocket" title="The board at a glance" span={2}>
-              <div className="brings">
+            <Tile icon="rocket" title="At a glance">
+              <div className="brings col">
                 <Ring
                   pct={Math.round((leader.t.cost / Math.max(1, pool)) * 100)}
                   colour="var(--bv-orange)"
@@ -185,7 +171,6 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
               </div>
             </Tile>
           )}
-
           {dates.length > 0 && (
             <div className="bt w4 bscope scope">
               <div className="bth">
@@ -202,21 +187,39 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
               />
             </div>
           )}
-
-          {Array.from({ length: slots }, (_, i) => (
-            <div className="bt bslot" key={i}>
-              <span className="brk">{rows.length + i + 1}</span>
-              <em>open</em>
             </div>
-          ))}
+          </div>
+
+          <aside className="bside">
+            <Tile icon="cursor" title={`Pool · ${label}`}>
+            <Fig v={usd(pool)} />
+            <Sub>across {rows.length} member{rows.length === 1 ? "" : "s"}</Sub>
+            </Tile>
+            <Tile icon="check" title="Lines written">
+              <Fig v={lines.toLocaleString("en-US")} />
+              <Sub>agent-assisted</Sub>
+            </Tile>
+
+            <Tile icon="spark" title="Tokens burned">
+              <Fig v={sci(tokens)} />
+              <Sub>{label}</Sub>
+            </Tile>
+
+            <Tile icon="rocket" title="Cost per 1,000 lines">
+              <Fig v={avgRate === null ? "—" : usd(avgRate)} />
+              <Sub>
+                {bestRate ? `${bestRate.user} is cheapest at ${usd(bestRate.rate)}` : "no lines yet"}
+              </Sub>
+            </Tile>
+          </aside>
         </div>
 
         <footer className="bwm">
-          {/* Generated with the Higgsfield CLI (gpt_image_2), same sticker
-              treatment as the icons. Decorative, so the real name stays in the
-              nav and this is hidden from the accessibility tree. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/wordmark.png" alt="" aria-hidden="true" />
+          <span className="bwmk">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/coin.png" srcSet="/coin.png 1x, /coin@2x.png 2x" alt="" aria-hidden="true" />
+            <b>tokenmax</b>
+          </span>
           <span>spend is api list-price equivalent, not billed</span>
         </footer>
       </div>

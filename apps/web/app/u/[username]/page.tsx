@@ -15,7 +15,7 @@ import {
 import { maxDowntimeSeconds, type ActivityDay } from "@/lib/downtime";
 import { Shell } from "../../console/shell";
 import { Scope } from "../../console/charts";
-import { Chip, Chips, Fig, Icon, Ring, ScaleBar, SegBar, Sticker, Sub, Tile } from "../../console/bevel";
+import { Chip, Chips, Fig, Ring, ScaleBar, SegBar, Sticker, Sub, Tile } from "../../console/bevel";
 import { HueDrift } from "../../console/hue";
 
 export const dynamic = "force-dynamic";
@@ -83,8 +83,12 @@ export default async function ProfilePage({
                 <div>
                   <h1>{member.displayName ?? member.username}</h1>
                   {rank > 0 && (
-                    <span className="rank">
-                      <Icon name="trophy" size={14} /> rank {rank} of {ranked.length}
+                    <span className={rank === 1 ? "rank first" : "rank"}>
+                      {rank === 1 && (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src="/coin-gold.png" alt="" aria-hidden="true" />
+                      )}
+                      rank {rank} of {ranked.length}
                     </span>
                   )}
                 </div>
@@ -125,31 +129,6 @@ export default async function ProfilePage({
               </Chips>
             </Tile>
 
-            <Tile icon="rocket" title="This month at a glance" span={2}>
-              <div className="brings">
-                <Ring
-                  pct={(t.active / 30) * 100}
-                  colour="var(--bv-lime)"
-                  value={`${Math.round((t.active / 30) * 100)}%`}
-                  label="Days worked"
-                  note={`${t.active} of 30`}
-                />
-                <Ring
-                  pct={share}
-                  colour="var(--bv-orange)"
-                  value={`${share}%`}
-                  label="Pool share"
-                  note={`of ${board.length} members`}
-                />
-                <Ring
-                  pct={topModelPc}
-                  colour="var(--bv-peri)"
-                  value={`${topModelPc}%`}
-                  label={topModel ? topModel[0].replace(/^claude-/, "") : "no models"}
-                  note="of all tokens"
-                />
-              </div>
-            </Tile>
 
             <Tile icon="spark" title="Tokens burned">
               <Fig v={sci(t.tokens)} />
@@ -170,15 +149,42 @@ export default async function ProfilePage({
               </Sub>
             </Tile>
 
-            <div className="bt w4 bscope scope">
-              <div className="bth">
-                <Sticker kind="cursor" />
-                Daily spend
+            <div className="bpair w4">
+              <Tile icon="rocket" title="This month at a glance">
+                <div className="brings col">
+                  <Ring
+                    pct={(t.active / 30) * 100}
+                    colour="var(--bv-lime)"
+                    value={`${Math.round((t.active / 30) * 100)}%`}
+                    label="Days worked"
+                    note={`${t.active} of 30`}
+                  />
+                  <Ring
+                    pct={share}
+                    colour="var(--bv-orange)"
+                    value={`${share}%`}
+                    label="Pool share"
+                    note={`of ${board.length} members`}
+                  />
+                  <Ring
+                    pct={topModelPc}
+                    colour="var(--bv-peri)"
+                    value={`${topModelPc}%`}
+                    label={topModel ? topModel[0].replace(/^claude-/, "") : "no models"}
+                    note="of all tokens"
+                  />
+                </div>
+              </Tile>
+              <div className="bt bscope scope">
+                <div className="bth">
+                  <Sticker kind="cursor" />
+                  Daily spend
+                </div>
+                <Scope
+                  series={[{ user: member.username, costs: days.map((d) => d.cost), lit: true }]}
+                  dates={days.map((d) => d.date)}
+                />
               </div>
-              <Scope
-                series={[{ user: member.username, costs: days.map((d) => d.cost), lit: true }]}
-                dates={days.map((d) => d.date)}
-              />
             </div>
 
             <Tile icon="spark" title="Model mix" span={2}>
@@ -193,7 +199,7 @@ export default async function ProfilePage({
                         key={model}
                         style={{
                           flex: Math.max(1, Math.round((tokens / Math.max(1, mixTotal)) * 100)),
-                          background: ["var(--bv-peri)", "var(--bv-lime)", "var(--bv-gold)"][i],
+                          background: ["var(--bv-peri)", "var(--bv-lime)", "var(--bv-cyan)"][i],
                         }}
                       />
                     ))}
@@ -201,7 +207,7 @@ export default async function ProfilePage({
                   <div className="bmixleg">
                     {member.mix.slice(0, 3).map(([model, tokens], i) => (
                       <span key={model}>
-                        <s style={{ background: ["var(--bv-peri)", "var(--bv-lime)", "var(--bv-gold)"][i] }} />
+                        <s style={{ background: ["var(--bv-peri)", "var(--bv-lime)", "var(--bv-cyan)"][i] }} />
                         <b>{Math.round((tokens / Math.max(1, mixTotal)) * 100)}%</b> {model}
                       </span>
                     ))}
@@ -237,11 +243,11 @@ export default async function ProfilePage({
           </div>
 
           <footer className="bwm">
-          {/* Generated with the Higgsfield CLI (gpt_image_2), same sticker
-              treatment as the icons. Decorative, so the real name stays in the
-              nav and this is hidden from the accessibility tree. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/wordmark.png" alt="" aria-hidden="true" />
+          <span className="bwmk">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/coin.png" srcSet="/coin.png 1x, /coin@2x.png 2x" alt="" aria-hidden="true" />
+            <b>tokenmax</b>
+          </span>
           <span>spend is api list-price equivalent, not billed</span>
         </footer>
         </div>
