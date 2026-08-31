@@ -169,14 +169,92 @@ export interface Series {
   user: string;
   costs: number[];
   lit: boolean;
+  /** Categorical colour slot, from slotOf(). -1 draws in the neutral ramp. */
+  slot?: number;
 }
 
 /**
- * Daily spend, sampled and held. A strip chart, not a curve: a day is a flat
- * step because a day is a bucket, and smoothing between the samples invents
- * readings that were never taken.
+ * A monotone cubic through the daily samples (Fritsch-Carlson).
+ *
+ * The reason it is this and not a Catmull-Rom or a plain cardinal spline: a
+ * spend chart must never bulge above a reading. Catmull-Rom overshoots between
+ * points, which on this board would draw money nobody spent and would do it in
+ * a comparison between two named people. Fritsch-Carlson clamps every tangent
+ * so the curve is monotone across each interval, so a local maximum can only
+ * ever be a day that actually happened.
+ *
+ * Two-decimal rounding throughout, or the server and the client disagree on the
+ * last float digit and React calls that a hydration mismatch.
  */
-export function Scope({ series, dates }: { series: Series[]; dates: string[] }) {
+function monotone(pts: [number, number][]): string {
+  const n = pts.length;
+  if (n === 0) return "";
+  if (n === 1) return `M${pts[0][0]},${pts[0][1]}`;
+  if (n === 2) return `M${pts[0][0]},${pts[0][1]}L${pts[1][0]},${pts[1][1]}`;
+
+  const dx: number[] = [];
+  const slope: number[] = [];
+  for (let i = 0; i < n - 1; i++) {
+    dx.push(pts[i + 1][0] - pts[i][0]);
+    slope.push((pts[i + 1][1] - pts[i][1]) / (pts[i + 1][0] - pts[i][0]));
+  }
+
+  // Tangents: the average of the neighbouring secants, then clamped.
+  const m: number[] = [slope[0]];
+  for (let i = 1; i < n - 1; i++) {
+    m.push(slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2);
+  }
+  m.push(slope[n - 2]);
+
+  for (let i = 0; i < n - 1; i++) {
+    if (slope[i] === 0) {
+      m[i] = 0;
+      m[i + 1] = 0;
+      continue;
+    }
+    const a = m[i] / slope[i];
+    const b = m[i + 1] / slope[i];
+    const h = Math.hypot(a, b);
+    // Outside the circle of radius 3 the cubic can leave the data's range.
+    if (h > 3) {
+      m[i] = ((3 * a) / h) * slope[i];
+      m[i + 1] = ((3 * b) / h) * slope[i];
+    }
+  }
+
+  let d = `M${r2(pts[0][0])},${r2(pts[0][1])}`;
+  for (let i = 0; i < n - 1; i++) {
+    const t = dx[i] / 3;
+    d +=
+      `C${r2(pts[i][0] + t)},${r2(pts[i][1] + m[i] * t)}` +
+      ` ${r2(pts[i + 1][0] - t)},${r2(pts[i + 1][1] - m[i + 1] * t)}` +
+      ` ${r2(pts[i + 1][0])},${r2(pts[i + 1][1])}`;
+  }
+  return d;
+}
+
+/**
+ * Daily spend, one curve per member.
+ *
+ * This was a held step chart, on the argument that a day is a bucket and
+ * smoothing between samples invents readings. That argument still stands
+ * against an unconstrained spline; the monotone fit above is the answer to it,
+ * and the register strip under each member row still shows the raw daily
+ * buckets undistorted. Flagged in the handoff either way.
+ */
+export function Scope({
+  series,
+  dates,
+  stepped = false,
+}: {
+  series: Series[];
+  dates: string[];
+  /** Draw each day as its own held bucket instead of a fitted curve, with the
+   *  monotone fit kept on top as a thin trend line. A single member's page is
+   *  reading their own raw days, so the buckets should be literal there; the
+   *  board is comparing people, where the curve is easier to follow. */
+  stepped?: boolean;
+}) {
   const [at, setAt] = useState<number | null>(null);
 
   const W = 1000;
@@ -199,10 +277,25 @@ export function Scope({ series, dates }: { series: Series[]; dates: string[] }) 
   const mid = (i: number) => r2(L + (i / n) * plotW + bw / 2);
   const y = (v: number) => r2(T + plotH - (v / peak) * plotH);
 
-  /** Hold the value across the day's width, then jump. */
-  const held = (costs: number[]) =>
-    costs.map((c, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(c)}L${r2(x(i) + bw)},${y(c)}`).join("");
-  const area = (costs: number[]) => `${held(costs)}L${r2(L + plotW)},${y(0)}L${L},${y(0)}Z`;
+  /** A day is plotted at the middle of its own width, not at its left edge. */
+  const curve = (costs: number[]) => monotone(costs.map((c, i) => [mid(i), y(c)]));
+
+  /** Sample and hold: each day is flat across its own width, and the value
+   *  only moves on the boundary between two days. */
+  const held = (costs: number[]) => {
+    if (costs.length === 0) return "";
+    let d = `M${x(0)},${y(costs[0])}`;
+    costs.forEach((c, i) => {
+      d += `L${x(i)},${y(c)}L${r2(x(i) + bw)},${y(c)}`;
+    });
+    return d;
+  };
+
+  const line = (costs: number[]) => (stepped ? held(costs) : curve(costs));
+  const area = (costs: number[]) =>
+    stepped
+      ? `${held(costs)}L${r2(x(costs.length - 1) + bw)},${y(0)}L${x(0)},${y(0)}Z`
+      : `${curve(costs)}L${mid(costs.length - 1)},${y(0)}L${mid(0)},${y(0)}Z`;
 
   const leader = series.find((s) => s.lit) ?? series[0];
   const peakIdx = leader ? leader.costs.indexOf(Math.max(...leader.costs)) : -1;
@@ -225,12 +318,20 @@ export function Scope({ series, dates }: { series: Series[]; dates: string[] }) 
         aria-label="Daily spend over the last thirty days"
       >
         <defs>
-          {series.map((s) => (
-            <linearGradient key={s.user} id={`sfill-${s.user}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="currentColor" stopOpacity={s.lit ? 0.3 : 0.13} />
-              <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-            </linearGradient>
-          ))}
+          {/* The bloom. One blur, sized in viewBox units and never animated:
+              animating a blur radius repaints the whole stacking context every
+              frame. `filterUnits` is userSpaceOnUse so a flat series does not
+              get a filter region of zero height and vanish. */}
+          <filter
+            id="scope-bloom"
+            filterUnits="userSpaceOnUse"
+            x={0}
+            y={0}
+            width={W}
+            height={H}
+          >
+            <feGaussianBlur stdDeviation="3.6" />
+          </filter>
         </defs>
 
         {/* y grid, labelled in money rather than in nothing */}
@@ -255,12 +356,41 @@ export function Scope({ series, dates }: { series: Series[]; dates: string[] }) 
           ) : null,
         )}
 
-        {series.map((s) => (
-          <g key={s.user} className={s.lit ? "ser lit" : "ser"}>
-            <path className="ar" d={area(s.costs)} fill={`url(#sfill-${s.user})`} />
-            <path className="ln" d={held(s.costs)} />
-          </g>
-        ))}
+        {/* Neon is two strokes of one path: a wide blurred copy for the bloom,
+            a thin crisp one on top for the core. Soft bloom, thin core, or it
+            reads as a smear rather than as a lit filament. The dash pattern is
+            the secondary encoding, so the series stay separable without colour. */}
+        {series.map((s) => {
+          const d = line(s.costs);
+          return (
+            <g
+              key={s.user}
+              className={s.lit ? "ser lit" : "ser"}
+              data-slot={s.slot ?? -1}
+            >
+              {/* The gradient lives inside the group on purpose: `currentColor`
+                  in a stop resolves against the gradient element's own
+                  inherited colour, not the colour of whatever references it.
+                  In <defs> at the root every fill came out the same hue. */}
+              <linearGradient id={`sfill-${s.user}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="currentColor" stopOpacity="0.24" />
+                <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+              </linearGradient>
+              {/* Only the leading series is filled. Four translucent areas
+                  stacked on each other is the spaghetti this has to survive. */}
+              {s.lit && <path className="ar" d={area(s.costs)} fill={`url(#sfill-${s.user})`} />}
+              <path className="glow" d={d} filter="url(#scope-bloom)" />
+              <path className="ln" d={d} />
+              {/* Stepped mode keeps the literal buckets and lays the fitted
+                  curve over them, so the shape of the month is still readable
+                  without the buckets being smoothed away. */}
+              {stepped && s.lit && (
+                <path className="trend" d={curve(s.costs)} filter="url(#scope-bloom)" />
+              )}
+              {stepped && s.lit && <path className="trend" d={curve(s.costs)} />}
+            </g>
+          );
+        })}
 
         {/* the biggest day, named, because it is what anyone looks for first */}
         {leader && peakIdx >= 0 && (
@@ -272,7 +402,7 @@ export function Scope({ series, dates }: { series: Series[]; dates: string[] }) 
           </g>
         )}
 
-        <line className="now" x1={r2(L + plotW)} y1={T} x2={r2(L + plotW)} y2={T + plotH} />
+        <line className="now" x1={mid(n - 1)} y1={T} x2={mid(n - 1)} y2={T + plotH} />
 
         {at !== null && (
           <g className="cross">
@@ -293,7 +423,7 @@ export function Scope({ series, dates }: { series: Series[]; dates: string[] }) 
       <div className="scoperead" aria-live="polite">
         <span className="day">{at === null ? "hover for a day" : dates[at]}</span>
         {series.map((s) => (
-          <span key={s.user} className={s.lit ? "key" : "key g"}>
+          <span key={s.user} className={s.lit ? "key" : "key g"} data-slot={s.slot ?? -1}>
             <i />
             {s.user}
             {at !== null && <b>{s.costs[at] === 0 ? "idle" : usd(s.costs[at])}</b>}

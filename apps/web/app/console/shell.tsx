@@ -60,7 +60,7 @@ export function Shell({ active, pot, members, hints, me, children }: Props) {
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img className="pfp" src={me.avatarUrl} alt="" />
               ) : (
-                <span className="pfp" />
+                <span className="pfp init">{me.username.slice(0, 1).toUpperCase()}</span>
               )}
             </Link>
           )}

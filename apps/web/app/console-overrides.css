@@ -916,7 +916,10 @@ button:focus-visible {
    sticker fills and the one scale bar, and never become surfaces.
    ══════════════════════════════════════════════════════════════════════════ */
 
-#lineup:has(.bevel) {
+/* The tokens belong to .bevel, not to the board's container: settings uses the
+ * same tiles from a different section id, and scoping them to #lineup left
+ * every var undefined there, so the tiles rendered with no surface at all. */
+.bevel, #lineup:has(.bevel), #settings:has(.bevel) {
   --bv-page: #000;
   --bv-tile: #1c1c1e;
   --bv-tile2: #232326;
@@ -1138,136 +1141,6 @@ button:focus-visible {
   .bspend { font-size: 19px; }
 }
 
-/* ── settings and sign-in, in the same language ───────────────────────────
- * These two carry working forms and an OAuth flow, so they are restyled
- * rather than rewritten: the markup is untouched and only the surface moves
- * to the Bevel palette. Same tiles, same radius, same one accent.
- * ───────────────────────────────────────────────────────────────────────── */
-
-#settings, #onboard {
-  --bv-page: #000;
-  --bv-tile: #1c1c1e;
-  --bv-tile2: #232326;
-  --bv-ink: #fff;
-  --bv-mid: #9a9aa0;
-  --bv-dim: #6a6a70;
-  --bv-orange: #ff7a3d;
-  background: var(--bv-page);
-  color: var(--bv-mid);
-  font-family: var(--ui);
-  overflow: auto;
-}
-
-/* .setwrap is a centred two-column grid in the study; settings is a short
- * single column of tiles here. */
-#settings .setwrap {
-  display: block;
-  height: auto;
-  align-content: start;
-  padding: 30px;
-  max-width: 760px;
-  margin: 0 auto;
-}
-#onboard .ob { padding: 30px; max-width: 900px; margin: 0 auto; }
-
-/* every grouped block becomes a tile */
-/* Both carry `backdrop-filter: blur(18px)` and a hairline from the study, which
- * is what was still glowing after the background was replaced. */
-#settings .srow,
-#settings .big,
-#settings .srow:hover,
-#settings .big:hover {
-  background: var(--bv-tile);
-  border: 0;
-  border-radius: 22px;
-  padding: 20px 22px;
-  margin: 0 0 14px;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  transform: none;
-}
-#settings .rows { display: block; }
-#settings .srow .t { color: var(--bv-ink); font-size: 15px; font-weight: 600; }
-#settings .srow .d, #settings .big .k { color: var(--bv-dim); font-size: 13px; }
-#settings .big .k { font-weight: 500; margin-bottom: 12px; }
-
-#settings .field input,
-#settings input[type="text"] {
-  background: var(--bv-tile2);
-  border: 0;
-  border-radius: 12px;
-  color: var(--bv-ink);
-  /* Never below 16px: iOS zooms the page on focus. */
-  font: 400 16px var(--ui);
-  padding: 11px 14px;
-}
-#settings .cmd button,
-#settings .field button {
-  background: var(--bv-tile2);
-  border: 0;
-  border-radius: 12px;
-  color: var(--bv-ink);
-  font: 500 14px var(--ui);
-  padding: 11px 18px;
-  cursor: pointer;
-  transition: background 0.18s var(--ease);
-}
-@media (hover: hover) {
-  #settings .cmd button:hover, #settings .field button:hover { background: #2c2c31; }
-}
-#settings .rig {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px 0; border-top: 1px solid rgb(255 255 255 / 0.05);
-  font-size: 14px;
-}
-#settings .rig:first-child { border-top: 0; }
-#settings .rig .n { color: var(--bv-ink); }
-#settings .rig .a { margin-left: auto; color: var(--bv-dim); font-size: 13px; }
-#settings .rig .d { width: 8px; height: 8px; border-radius: 3px; flex: none; }
-
-/* sign-in */
-#onboard .ob { max-width: 520px; padding-top: 90px; }
-#onboard h2 {
-  font: 600 28px/1.15 var(--ui); color: var(--bv-ink);
-  letter-spacing: -0.02em; margin: 0 0 12px; text-wrap: balance;
-}
-#onboard p { font-size: 15px; line-height: 1.6; color: var(--bv-mid); margin: 0 0 26px; text-wrap: pretty; }
-/* "Step 01 of 02" in tracked small caps is the tell this file exists to avoid;
- * the two dots already say where you are. */
-#onboard .steps span { display: none; }
-#onboard .steps { display: flex; gap: 6px; margin-bottom: 26px; }
-#onboard .steps i {
-  /* the study gives these flex:1, which stretches them across the column */
-  flex: none;
-  width: 26px; height: 3px; border-radius: 2px;
-  background: var(--bv-tile2); display: block;
-}
-#onboard .steps i.on { background: var(--bv-orange); }
-#onboard .gh {
-  display: flex; align-items: center; gap: 10px;
-  background: #fff; color: #000; border: 0; border-radius: 14px;
-  font: 600 15px var(--ui); padding: 14px 20px; cursor: pointer; width: 100%;
-  justify-content: center;
-  transition: opacity 0.18s var(--ease);
-}
-#onboard .gh:disabled { opacity: 0.55; cursor: default; }
-@media (hover: hover) { #onboard .gh:not(:disabled):hover { opacity: 0.88; } }
-#onboard .gh:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--bv-page), 0 0 0 4px var(--bv-orange);
-}
-#onboard .wait {
-  display: flex; align-items: center; gap: 10px; margin-top: 18px;
-  background: var(--bv-tile); border-radius: 14px; padding: 13px 16px;
-  font-size: 13.5px; color: var(--bv-mid);
-}
-#onboard .wait .d { width: 8px; height: 8px; border-radius: 3px; background: var(--bv-orange); flex: none; }
-
-@media (max-width: 720px) {
-  #settings .setwrap, #onboard .ob { padding: 20px 16px; }
-  #onboard .ob { padding-top: 54px; }
-}
 
 /* ══════════════════════════════════════════════════════════════════════════
    NAV, in the same language as everything under it
@@ -1501,3 +1374,640 @@ button:focus-visible {
 .bpair.w4 { grid-column: span 4; }
 @media (max-width: 1180px) { .bpair.w4 { grid-column: span 2; } }
 @media (max-width: 720px)  { .bpair.w4 { grid-column: span 1; } }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · THE TOTALS ARE ONE CARD, NOT FOUR
+   Four floating cards down the rail read as four unrelated readings with air
+   between them, and the stack stopped two thirds of the way down the page.
+   They are rows inside one object now, and the object fills its column.
+
+   Concentric radii, one variable and a calc(): inner = outer - inset, so the
+   gap stays constant as it goes round the corner. --r 18px, --pad 6px, inner
+   12px. 6px is the tight end of the 6-12 inset; 18 is the top of the 14-18
+   outer band at that inset; 12 clears the ~10 floor below which the inner
+   corner stops reading as round.
+
+   Inverted elevation: the rows are lighter than the card that holds them, and
+   both carry a 0.5px hairline. The page here is literally #000, so the card
+   cannot be darker than the page as well; it sits a shade above black and far
+   below the rows, and the contrast step between card and row is what carries
+   the separation at a 6px inset.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.bboard { align-items: stretch; }
+
+.bside {
+  display: block;
+  align-self: stretch;
+}
+
+/* The two variables live on the card itself, not on .bside. A rule further
+ * down the sheet also sets --pad on .bside, and inheriting it here silently
+ * moved the inset to 8px and the inner radius to 10px. The card owns its own
+ * geometry, so no later rule on its parent can retune it by accident. */
+.bstack {
+  --r: 18px;
+  --pad: 6px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--pad);
+  padding: var(--pad);
+  border-radius: var(--r);
+  background: #0e0e10;
+  border: 0.5px solid rgb(255 255 255 / 0.07);
+}
+
+.bstack > .bsrow {
+  flex: 1 1 0;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 16px;
+  border-radius: calc(var(--r) - var(--pad));
+  background: var(--bv-tile);
+  border: 0.5px solid rgb(255 255 255 / 0.06);
+}
+
+.bstack .bth { font-size: 12.5px; }
+.bstack .bth .ic { width: 19px; height: 19px; }
+.bstack .bfig {
+  margin-top: 7px;
+  font-size: 23px;
+  font-variant-numeric: tabular-nums;
+}
+.bstack .bsub { font-size: 12px; margin-top: 2px; }
+
+/* Cost per 1,000 lines is the stat the product is an argument about, so it is
+ * the one row that gets more height and a lighter surface. Ranking is still by
+ * spend; that tension is Jax's to settle, not this stylesheet's. */
+.bstack > .bsrow.lead {
+  flex: 1.3 1 0;
+  background: var(--bv-tile2);
+}
+.bstack > .bsrow.lead .bfig { font-size: 30px; }
+
+@media (max-width: 1000px) {
+  /* Stacked under the board there is no column height to fill, so the rows go
+   * back to their own heights rather than stretching to a screen. */
+  .bside { display: block; }
+  .bstack { height: auto; }
+  .bstack > .bsrow, .bstack > .bsrow.lead { flex: 0 0 auto; min-height: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · THE EMPTY BOARD
+   It was a grey rectangle reading "nothing logged in this window", which is
+   indistinguishable from a page that failed. The list area keeps the shape of
+   a list, the seats say `open` rather than pretending to load, and the one
+   command that fills the board is on the card.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.bemptyp {
+  margin: 12px 0 0;
+  max-width: 64ch;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--bv-mid);
+  text-wrap: pretty;
+}
+
+.bseats { display: flex; flex-direction: column; gap: 8px; margin: 20px 0 22px; }
+.bseat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 13px;
+  border-radius: 14px;
+  background: #151517;
+  border: 0.5px solid rgb(255 255 255 / 0.05);
+}
+.bseat .brk { font-size: 19px; color: #3a3a40; min-width: 1.5ch; }
+.bseat .bav.sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: none;
+  border: 1px dashed rgb(255 255 255 / 0.11);
+}
+.bseatn { font-size: 13px; color: #55555c; min-width: 8ch; }
+/* Nothing here moves. Nothing is loading, so a shimmer would be a lie. */
+.bseat .bseg { margin-top: 0; height: 15px; flex: 1; opacity: 0.4; }
+
+.bcmd {
+  display: block;
+  font: 400 13px/1.5 var(--mn);
+  color: var(--bv-mid);
+  background: #151517;
+  border: 0.5px solid rgb(255 255 255 / 0.06);
+  border-radius: 12px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.bcmdn { margin-top: 9px; font-size: 12.5px; color: var(--bv-dim); }
+
+@media (max-width: 560px) {
+  .bseat .bseg { display: none; }
+  .bseatn { margin-left: auto; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · THE NAV FLOATS
+   The rail was the first grid row of #shell, flush to the top edge. It is off
+   the edge now and the page runs under it. Concentric again, three deep:
+   rail 18px, its 8px padding gives the segmented control 10px, and the
+   control's own 3px padding gives each link 7px.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* A fixed element stops being a grid item, so the rail no longer occupies a
+ * row and #stage would be auto-placed into the first one. Two rows now: the
+ * stage, then the hints band. */
+#shell { grid-template-rows: 1fr auto; }
+
+.rail {
+  --rail-r: 18px;
+  --rail-pad: 8px;
+  position: fixed;
+  top: 12px;
+  left: max(14px, env(safe-area-inset-left));
+  right: max(14px, env(safe-area-inset-right));
+  z-index: 40;
+  padding: var(--rail-pad) var(--rail-pad) var(--rail-pad) 18px;
+  gap: 18px;
+  border-radius: var(--rail-r);
+  border: 0.5px solid rgb(255 255 255 / 0.09);
+  background: rgb(13 13 15 / 0.72);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+  /* backdrop-filter on a fixed element flickers on iOS Safari during scroll */
+  transform: translateZ(0);
+}
+
+.navs { padding: 3px; border-radius: calc(var(--rail-r) - var(--rail-pad)); }
+.nav { border-radius: calc(var(--rail-r) - var(--rail-pad) - 3px); }
+
+/* Clearance so the first thing on every page starts below the floating rail
+ * rather than under it. 12 top + 54 rail + 16 breathing room. */
+.bevel { padding-top: 82px; }
+#settings .setwrap { padding-top: 82px; }
+#onboard .ob { padding-top: 110px; }
+
+@media (pointer: coarse) {
+  .nav, .brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+  }
+  .nav.me .pfp { width: 34px; height: 34px; border-radius: 11px; }
+}
+
+@media (max-width: 720px) {
+  .rail { --rail-pad: 6px; padding-left: 14px; gap: 10px; }
+  .navs { border-radius: calc(var(--rail-r) - var(--rail-pad)); }
+  .nav { padding: 7px 12px; }
+  .bevel { padding-top: 76px; }
+  #settings .setwrap, #onboard .ob { padding-top: 84px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · THE EFFICIENCY SCALE RAN BACKWARDS
+   The stops were orange, gold, lime left to right under captions reading
+   `efficient` and `wasteful`, so the bar congratulated you in red for being
+   cheap and reassured you in green for burning money. The marker was already
+   correct: ScaleBar positions on rate / ceiling, so low is left, and only the
+   stops were inverted. Same three stops, read the other way.
+
+   Orange rather than red at the top end, because orange already means an
+   expensive day everywhere else on this board (the register cells, the gauge
+   band, the leader's ring) and a fourth colour would say something new.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.bscale {
+  background: linear-gradient(90deg, var(--bv-lime), var(--bv-gold), var(--bv-orange));
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · THE SPEND CURVES
+   Neon is sanctioned here and nowhere else: it is one bright core over one
+   blurred copy of the same path. The bloom stays soft and the core stays thin,
+   or it smears. Buttons, cards and the nav get none of it.
+
+   Palette: the dataviz reference categorical column stepped for a dark
+   surface, re-ordered so the product's orange takes slot 1. Validated against
+   #1c1c1e with scripts/validate_palette.js --mode dark: all six pass the
+   lightness band, the chroma floor, adjacent CVD separation (worst ΔE 8.4
+   protan), the normal-vision floor (worst ΔE 19.3) and 3:1 contrast.
+
+   Six slots because the board has six seats. A seventh member draws in the
+   neutral ramp rather than getting a seventh invented hue.
+
+   Colour is never the only encoding: each slot also carries its own dash on
+   the core stroke, and the readout under the plot names every series.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.bevel .scope {
+  --s0: #d95926;
+  --s1: #3987e5;
+  --s2: #199e70;
+  --s3: #c98500;
+  --s4: #d55181;
+  --s5: #9085e9;
+}
+
+.bevel .scope .ser { color: #55555c; }
+.bevel .scope .ser[data-slot="0"] { color: var(--s0); }
+.bevel .scope .ser[data-slot="1"] { color: var(--s1); }
+.bevel .scope .ser[data-slot="2"] { color: var(--s2); }
+.bevel .scope .ser[data-slot="3"] { color: var(--s3); }
+.bevel .scope .ser[data-slot="4"] { color: var(--s4); }
+.bevel .scope .ser[data-slot="5"] { color: var(--s5); }
+
+/* the core: thin, crisp, and the same width whatever the plot is scaled to */
+.bevel .scope .ser .ln,
+.bevel .scope .ser.lit .ln {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.bevel .scope .ser.lit .ln { stroke-width: 1.9; }
+
+/* the bloom: one wide blurred copy of the same path, always solid so the haze
+ * reads as a continuous filament rather than a string of beads */
+.bevel .scope .ser .glow {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.16;
+}
+.bevel .scope .ser.lit .glow { stroke-width: 6; opacity: 0.32; }
+
+/* the dash is the secondary encoding, so the series survive being printed,
+ * being read by a colourblind eye, and being four deep */
+.bevel .scope .ser[data-slot="1"] .ln { stroke-dasharray: 10 5; }
+.bevel .scope .ser[data-slot="2"] .ln { stroke-dasharray: 2.5 4; }
+.bevel .scope .ser[data-slot="3"] .ln { stroke-dasharray: 12 4 2.5 4; }
+.bevel .scope .ser[data-slot="4"] .ln { stroke-dasharray: 6 4; }
+.bevel .scope .ser[data-slot="5"] .ln { stroke-dasharray: 2.5 4 10 4; }
+
+/* the crosshair dot picks up its series colour from the group */
+.bevel .scope .cross .d,
+.bevel .scope .cross .d.lit { stroke: currentColor; }
+
+/* the readout swatches carry the slot colour and its dash; the names beside
+ * them stay in text ink, because text never wears the series colour */
+.bevel .scoperead .key i { background: #55555c; }
+.bevel .scoperead .key[data-slot="0"] i { background: var(--s0, #d95926); }
+.bevel .scoperead .key[data-slot="1"] i { background: var(--s1, #3987e5); }
+.bevel .scoperead .key[data-slot="2"] i { background: var(--s2, #199e70); }
+.bevel .scoperead .key[data-slot="3"] i { background: var(--s3, #c98500); }
+.bevel .scoperead .key[data-slot="4"] i { background: var(--s4, #d55181); }
+.bevel .scoperead .key[data-slot="5"] i { background: var(--s5, #9085e9); }
+.bevel .scoperead .key.g i { height: 2px; }
+
+/* A spend chart is the supporting view. Cost per 1,000 lines is the argument,
+ * and neon is exactly the thing that would let spend out-shout it, so the
+ * plate is held back to make room for the curves rather than lit further. */
+.bevel .scope .grid-l, .bevel .scope .grid-v { stroke: #202024; }
+.bevel .scopesvg text { font-variant-numeric: tabular-nums; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PROFILE CARD                                         added 2026-08-31
+   ──────────────────────────────────────────────────────────────────────────
+   Self-contained. Everything from this banner to the end of the file belongs
+   to the member identity card on /u/[username] and nothing else, so the two
+   branches in flight can be merged without reading around each other.
+
+   It supersedes the earlier `.bid` rules further up this file — the blocks
+   headed "the profile identity, back as a tall card" and "the identity card's
+   face". Those now match no markup and can be deleted at merge time.
+
+   The idea: the avatar is a wall of the card, not a thumbnail inside it. It is
+   flush to the left and stretches the full inner height, and the only thing
+   between it and the card's edge is the shared inset. Everything else in the
+   card hangs off that one inset.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.bevel .bid {
+  /* One inset. The face's radius is a calc off it, never a second number. */
+  --bid-pad: 8px;
+  --bid-gutter: 14px;
+  --bid-face: 176px;
+
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 22px;
+  padding: var(--bid-pad);
+  min-height: calc(var(--bid-face) + var(--bid-pad) * 2);
+  /* Hairline on the card, and a lighter one on every inner surface below. */
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.05);
+}
+
+.bevel .bid .bav {
+  flex: none;
+  align-self: stretch;
+  width: var(--bid-face);
+  height: auto;
+  /* If a long handle ever wraps and pushes the card taller, the face stops
+     rather than becoming a sliver. It stays flush left either way. */
+  max-height: calc(var(--bid-face) * 1.5);
+  border-radius: calc(var(--bv-r) - var(--bid-pad));
+  object-fit: cover;
+  /* An outline, not an inset shadow: on a replaced element the image paints
+     over an inset shadow and swallows it. Neutral white at 0.1, never a
+     tinted grey, which picks up the tile underneath and reads as dirt. */
+  outline: 1px solid oklch(1 0 0 / 0.1);
+  outline-offset: -1px;
+}
+
+.bevel .bid .bidb {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding: 12px var(--bid-gutter) 12px 0;
+}
+
+/* Auto margins centre the name against the face and drop the chips to the
+   floor in one move, so the two can never collide. */
+.bevel .bid .bidwho { margin-block: auto; }
+
+.bevel .bid h1 {
+  margin: 0;
+  font: 700 40px/1.02 var(--ui);
+  letter-spacing: -0.035em;
+  color: var(--bv-ink);
+  overflow-wrap: anywhere;
+}
+
+.bevel .bid .rank { margin-top: 8px; }
+.bevel .bid .rank img { width: 18px; height: 18px; }
+
+.bevel .bid .bchips {
+  margin-top: 0;
+  padding-top: 14px;
+  justify-content: flex-end;
+}
+.bevel .bid .bchip { box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.04); }
+
+/* ── the way out ──────────────────────────────────────────────────────────
+ * A profile is one level in from the board, so it says so and offers the step
+ * back in the card itself rather than making people find it in the nav.
+ * Escape does the same thing; see ./escape.tsx. Nothing traps focus, because
+ * this is a page and Tab walks off it the way it walks off any other. */
+.bevel .bid .bidout {
+  position: absolute;
+  top: calc(var(--bid-pad) + 12px);
+  right: calc(var(--bid-pad) + var(--bid-gutter));
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  background: var(--bv-tile2);
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.06);
+  font: 500 13px var(--ui);
+  color: var(--bv-mid);
+  text-decoration: none;
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+@media (hover: hover) {
+  .bevel .bid .bidout:hover { color: var(--bv-ink); background: #2c2c31; }
+}
+.bevel .bid .bidout:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bv-tile), 0 0 0 4px var(--bv-orange);
+}
+/* A finger needs 44px; a cursor does not, and 44px of dead padding beside a
+   13px label looks like a mistake on a desktop. */
+@media (pointer: coarse) {
+  .bevel .bid .bidout { min-height: 44px; padding-inline: 15px; }
+}
+
+/* ── motion ───────────────────────────────────────────────────────────────
+ * Opt-in, transform and opacity only, ease-out, under 200ms. The card is the
+ * thing you clicked into, so it is the only thing on the page that arrives. */
+@media (prefers-reduced-motion: no-preference) {
+  .bevel .bid { animation: bid-in 180ms var(--ease) both; }
+  @keyframes bid-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+/* ── narrower ─────────────────────────────────────────────────────────────
+ * The card is two of four columns above 1180 and the full width of a
+ * two-column grid below it, so the face only has to come down twice. */
+@media (max-width: 900px) {
+  .bevel .bid { --bid-face: 148px; gap: 18px; }
+  .bevel .bid h1 { font-size: 34px; }
+}
+@media (max-width: 720px) {
+  .bevel .bid {
+    --bid-pad: 7px;
+    --bid-gutter: 12px;
+    --bid-face: 104px;
+    gap: 15px;
+    min-height: calc(var(--bid-face) + var(--bid-pad) * 2);
+  }
+  .bevel .bid .bidb { padding-top: 10px; padding-bottom: 10px; }
+  .bevel .bid h1 { font-size: 26px; }
+  .bevel .bid .rank { margin-top: 6px; }
+  /* One column wide, a right-aligned chip row leaves a ragged gutter under the
+     name. It reads better back on the same left edge as everything else. */
+  .bevel .bid .bchips { justify-content: flex-start; padding-top: 12px; }
+  /* The label goes and the arrow stays, at the 44px a finger needs. A labelled
+     pill in flow was adding 42px of card height, and the face then stopped
+     short of the bottom edge, which is the one thing this card is about. The
+     link keeps its accessible name; only the visible word is dropped. */
+  .bevel .bid .bidout {
+    top: calc(var(--bid-pad) + 3px);
+    right: calc(var(--bid-pad) + 3px);
+    width: 44px;
+    height: 44px;
+    min-height: 0;
+    padding: 0;
+    justify-content: center;
+    border-radius: 14px;
+  }
+  .bevel .bid .bidout span { display: none; }
+  /* so a long handle cannot run under the arrow */
+  .bevel .bid .bidwho { padding-right: 50px; }
+}
+
+/* A dash is the absence of a reading, not a reading. It should not carry the
+ * weight of a figure that is actually there. */
+.bstack .bfig.none { color: #4a4a51; }
+
+/* The `now` rule marks the right-hand end of the timebase. Against a held step
+ * chart it sat flush with the end of the line; against a curve that lands on
+ * the last day's centre it read as a spike to the top of the plot. Dashed and
+ * held back, so it reads as a rule and not as a reading. */
+.bevel .scope .now { stroke-dasharray: 2 5; opacity: 0.5; }
+
+/* Full width and stacked four deep is a lot of column for four short readings.
+ * Between the rail collapsing and the phone breakpoint they go two up inside
+ * the same card, which keeps it one object rather than splitting it again. */
+@media (max-width: 1000px) and (min-width: 561px) {
+  .bstack { flex-direction: row; flex-wrap: wrap; }
+  .bstack > .bsrow,
+  .bstack > .bsrow.lead { flex: 1 1 calc(50% - var(--pad) / 2); }
+}
+
+/* ── loose ends ───────────────────────────────────────────────────────── */
+
+/* An avatar-less viewer got an empty rounded square in the nav, which reads as
+ * a broken button. It carries their initial now. */
+.pfp.init {
+  display: grid;
+  place-items: center;
+  background: #2c2c31;
+  color: #cfcfd6;
+  font: 600 12px var(--ui);
+  letter-spacing: 0;
+}
+
+/* The identity block was vertically centred, which pushed the name into the
+ * middle of a tall card and left a hole above it. Name first, chips last,
+ * and the way back pinned to the corner rather than stacked over the name. */
+.bid { position: relative; justify-content: flex-start; padding-top: 20px; }
+.bid .bidb { display: flex; flex-direction: column; gap: 14px; min-width: 0; flex: 1; }
+.bid .bidwho { order: -1; }
+.bid .bidout {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px 9px 11px;
+  border-radius: 12px;
+  background: #232326;
+  color: #9a9aa0;
+  font: 500 13px var(--ui);
+  text-decoration: none;
+  transition: color 0.18s var(--ease), background 0.18s var(--ease);
+}
+@media (hover: hover) { .bid .bidout:hover { color: #fff; background: #2c2c31; } }
+.bid .bidout:focus-visible { outline: none; box-shadow: 0 0 0 2px #1c1c1e, 0 0 0 4px #ff7a3d; }
+.bid .bidb .bchips { margin-top: auto; padding-top: 0; }
+
+/* The rail became one card, but as .bstack holding four rows rather than as a
+ * frame wrapped around four surviving tiles. Two attempts at the same idea
+ * landed in the same file: this one painted its frame while its inner rule
+ * matched no markup, so the rail rendered as three cards nested inside each
+ * other and its --pad silently retuned the other one's inner radius. Removed
+ * in favour of .bstack, which is the one the markup now speaks. */
+
+/* ── settings, now that it is tiles like everything else ─────────────────
+ * The controls keep their markup, so these only restate the row and the
+ * field inside a tile.
+ * ───────────────────────────────────────────────────────────────────────── */
+#settings { background: #000; overflow: auto; }
+#settings .srow,
+#settings .srow:hover {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+#settings .srow .t { display: none; }        /* the tile title already says it */
+#settings .srow .d { color: #9a9aa0; font: 400 13px var(--ui); margin: 0; }
+#settings .field input,
+#settings input[type="text"] {
+  background: #2c2c31;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  /* never below 16px: iOS zooms the page on focus */
+  font: 400 16px var(--ui);
+  padding: 11px 14px;
+  width: 100%;
+}
+#settings .field input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #1c1c1e, 0 0 0 4px #ff7a3d;
+}
+#settings .cmd button,
+#settings .field button {
+  background: #2c2c31;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  font: 500 14px var(--ui);
+  padding: 11px 18px;
+  cursor: pointer;
+  transition: background 0.18s var(--ease);
+}
+@media (hover: hover) {
+  #settings .cmd button:hover, #settings .field button:hover { background: #37373d; }
+}
+#settings .cmd { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+/* ── sign-in ──────────────────────────────────────────────────────────── */
+#onboard { background: #000; overflow: auto; }
+#onboard .ob { max-width: 460px; margin: 0 auto; padding: 90px 24px 40px; }
+#onboard h2 {
+  font: 600 28px/1.15 var(--ui); color: #fff;
+  letter-spacing: -0.02em; margin: 0 0 12px; text-wrap: balance;
+}
+#onboard p { font-size: 15px; line-height: 1.6; color: #9a9aa0; margin: 0 0 26px; text-wrap: pretty; }
+#onboard .steps span { display: none; }   /* "Step 01 of 02" in tracked caps */
+#onboard .steps { display: flex; gap: 6px; margin-bottom: 26px; }
+#onboard .steps i { flex: none; width: 26px; height: 3px; border-radius: 2px; background: #2c2c31; display: block; }
+#onboard .steps i.on { background: #ff7a3d; }
+#onboard .gh {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: #fff; color: #000; border: 0; border-radius: 14px;
+  font: 600 15px var(--ui); padding: 14px 20px; cursor: pointer; width: 100%;
+  transition: opacity 0.18s var(--ease);
+}
+#onboard .gh:disabled { opacity: 0.55; cursor: default; }
+@media (hover: hover) { #onboard .gh:not(:disabled):hover { opacity: 0.88; } }
+#onboard .gh:focus-visible { outline: none; box-shadow: 0 0 0 2px #000, 0 0 0 4px #ff7a3d; }
+#onboard .wait {
+  display: flex; align-items: center; gap: 10px; margin-top: 18px;
+  background: #1c1c1e; border-radius: 14px; padding: 13px 16px;
+  font-size: 13.5px; color: #9a9aa0;
+}
+#onboard .wait .d { width: 8px; height: 8px; border-radius: 3px; background: #ff7a3d; flex: none; }
+
+/* Settings tiles hold one control each, so they size to their content rather
+ * than to the board's 172px module height, which left them looking empty. */
+#settings .bt { min-height: 0; }
+#settings .bgrid { align-items: start; }
+#settings .srow { margin-top: 12px; }
+#settings .brigs { margin-top: 12px; }
+/* The description is the tile's own subtitle, so it sits under the title
+ * rather than beside the control. */
+#settings .srow { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+#settings .field { min-width: 0 !important; max-width: 320px; }
+
+/* The trend line over the held buckets: thin, neon, and never the thing you
+ * read a value off. The buckets stay the record. */
+.scope .trend {
+  fill: none;
+  stroke: #ff9a5c;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}

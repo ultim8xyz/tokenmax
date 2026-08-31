@@ -6,8 +6,9 @@ import {
   costPerKiloLine,
   denseDays,
   dur,
-  sci,
+  slotOf,
   streakOf,
+  toks,
   total,
   usd,
   windowDays,
@@ -15,8 +16,9 @@ import {
 import { maxDowntimeSeconds, type ActivityDay } from "@/lib/downtime";
 import { Shell } from "../../console/shell";
 import { Scope } from "../../console/charts";
-import { Chip, Chips, Fig, Ring, ScaleBar, SegBar, Sticker, Sub, Tile } from "../../console/bevel";
+import { Chip, Chips, Fig, Icon, Ring, ScaleBar, SegBar, Sticker, Sub, Tile } from "../../console/bevel";
 import { HueDrift } from "../../console/hue";
+import { BackOnEscape } from "./escape";
 
 export const dynamic = "force-dynamic";
 
@@ -69,18 +71,26 @@ export default async function ProfilePage({
   return (
     <Shell active={`/u/${viewer.username}`} pot={pot} members={board.length} me={viewer}>
       <HueDrift hue={member.hue} />
+      <BackOnEscape href="/" />
       <section className="view on" id="lineup">
         <div className="bevel">
           <div className="bgrid">
+            {/* The identity card. The face is a wall of the card rather than a
+                thumbnail inside it, so the avatar stretches the full inner
+                height and only the shared inset separates it from the edge. */}
             <div className="bt bid">
-              <div className="top">
-                {member.avatarUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img className="bav" src={member.avatarUrl} alt="" />
-                ) : (
-                  <span className="bav" />
-                )}
-                <div>
+              {member.avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img className="bav" src={member.avatarUrl} alt="" />
+              ) : (
+                <span className="bav" />
+              )}
+              <div className="bidb">
+                <Link href="/" className="bidout" aria-label="Back to the leaderboard">
+                  <Icon name="back" />
+                  <span>leaderboard</span>
+                </Link>
+                <div className="bidwho">
                   <h1>{member.displayName ?? member.username}</h1>
                   {rank > 0 && (
                     <span className={rank === 1 ? "rank first" : "rank"}>
@@ -88,18 +98,23 @@ export default async function ProfilePage({
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img src="/coin-gold.png" alt="" aria-hidden="true" />
                       )}
-                      rank {rank} of {ranked.length}
+                      {/* Say which rank. The board sorts by spend and the stat
+                          it leads with is $ per 1,000 lines, so a bare "rank 1
+                          of 2" implies a general standing this number does not
+                          have. Naming the axis costs two words and stops the
+                          card claiming something nobody decided. */}
+                      rank {rank} of {ranked.length} by spend
                     </span>
                   )}
                 </div>
+                <Chips>
+                  <Chip tone="n">
+                    {member.devices.length} machine{member.devices.length === 1 ? "" : "s"}
+                  </Chip>
+                  <Chip tone="n">{t.peak} agents at peak</Chip>
+                  <Chip tone="n">{t.active} of 30 days</Chip>
+                </Chips>
               </div>
-              <Chips>
-                <Chip tone="n">
-                  {member.devices.length} machine{member.devices.length === 1 ? "" : "s"}
-                </Chip>
-                <Chip tone="n">{t.peak} agents at peak</Chip>
-                <Chip tone="n">{t.active} of 30 days</Chip>
-              </Chips>
             </div>
             <Tile icon="cursor" title="Spend" span={2}>
               <Fig v={usd(t.cost)} />
@@ -131,7 +146,7 @@ export default async function ProfilePage({
 
 
             <Tile icon="spark" title="Tokens burned">
-              <Fig v={sci(t.tokens)} />
+              <Fig v={toks(t.tokens)} />
               <Sub>across {t.sessions} sessions</Sub>
               <Chips>
                 <Chip tone="n">{t.interactive} you opened</Chip>
@@ -181,14 +196,22 @@ export default async function ProfilePage({
                   Daily spend
                 </div>
                 <Scope
-                  series={[{ user: member.username, costs: days.map((d) => d.cost), lit: true }]}
+                  stepped
+                  series={[
+                    {
+                      user: member.username,
+                      costs: days.map((d) => d.cost),
+                      lit: true,
+                      slot: slotOf(board, member.username),
+                    },
+                  ]}
                   dates={days.map((d) => d.date)}
                 />
               </div>
             </div>
 
             <Tile icon="spark" title="Model mix" span={2}>
-              <Sub>share of {sci(t.tokens)} tokens</Sub>
+              <Sub>share of {toks(t.tokens)} tokens</Sub>
               {member.mix.length === 0 ? (
                 <Sub>no models reported yet</Sub>
               ) : (

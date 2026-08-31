@@ -2,6 +2,7 @@ import { requireMember } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/service";
 import { loadBoardSummary } from "@/lib/console/load";
 import { Shell } from "../console/shell";
+import { Sub, Tile } from "../console/bevel";
 import { AliasRow, MachineRow } from "./controls";
 
 export const dynamic = "force-dynamic";
@@ -19,36 +20,47 @@ export default async function SettingsPage() {
     loadBoardSummary(),
   ]);
 
+  const roster = members ?? [];
+
   return (
     <Shell active="/settings" pot={summary.pot} members={summary.members} me={member}>
       <section className="view on" id="settings">
-        <div className="setwrap">
-          <div className="rows rise" style={{ "--i": 0 } as React.CSSProperties}>
-            <AliasRow username={member.username} initial={member.displayName} />
-            <MachineRow />
+        <div className="bevel">
+          <div className="bhead">
+            <div>
+              <h1>Settings</h1>
+              <div className="bm">signed in as {member.username}</div>
+            </div>
           </div>
 
-          <div className="feed rise" style={{ "--i": 2 } as React.CSSProperties}>
+          <div className="bgrid">
+            {/* The controls keep their own markup and behaviour; only the
+                surface around them is the product's. */}
+            <Tile icon="check" title="Display name" span={2}>
+              <AliasRow username={member.username} initial={member.displayName} />
+            </Tile>
+
+            <Tile icon="rocket" title="Add a machine" span={2}>
+              <MachineRow />
+            </Tile>
+
             {member.role === "owner" && (
-              <div className="big" style={{ marginTop: 14 }}>
-                <div className="k">Members</div>
-                <div className="rigs">
-                  {(members ?? []).map((m) => (
-                    <div className="rig" key={m.username as string}>
-                      <span
-                        className="d"
-                        style={{
-                          background: m.onboarded_at
-                            ? "hsl(var(--hue) 96% 66%)"
-                            : "rgba(150,166,205,0.34)",
-                        }}
-                      />
-                      <span className="n">@{m.username as string}</span>
-                      <span className="a">{m.onboarded_at ? (m.role as string) : "not synced"}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <Tile icon="spark" title="Members" span={4}>
+                {roster.length === 0 ? (
+                  <Sub>nobody yet</Sub>
+                ) : (
+                  <div className="brigs">
+                    {roster.map((m) => (
+                      <div className="brig" key={m.username as string}>
+                        <span className="n">@{m.username as string}</span>
+                        <span className="a">
+                          {m.onboarded_at ? (m.role as string) : "not synced"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Tile>
             )}
           </div>
         </div>
