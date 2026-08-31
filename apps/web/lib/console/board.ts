@@ -156,19 +156,28 @@ export const usd0 = (n: number) =>
   "$" + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
 /**
- * Scientific notation, which is the register a token count actually lives in.
+ * The one place a token count gets formatted.
+ *
+ * This used to be `sci()`, which printed `9.10e9`. Scientific notation is the
+ * register a token count lives in mathematically, and it is not a register
+ * anyone reads on a scoreboard: the exponent has to be decoded before the
+ * number means anything. An abbreviation is read at a glance instead.
+ *
+ * Trailing zeros are dropped, so it is `9.1B` rather than `9.10B` and `2B`
+ * rather than `2.0B`. Lines written keeps its thousands separators, on
+ * purpose: lines are a countable thing someone earned to the unit, tokens are
+ * a magnitude nobody counts.
+ *
  * Lives here beside the other formatters rather than in the chart module,
  * because a server component has to be able to call it too.
  */
-export const sci = (n: number) => {
-  if (n <= 0) return "0";
-  const e = Math.floor(Math.log10(n));
-  return `${(n / 10 ** e).toFixed(2)}e${e}`;
-};
+const trim = (n: number, dp: number) => Number(n.toFixed(dp)).toString();
 
 export const toks = (n: number) =>
-  n >= 1e9 ? (n / 1e9).toFixed(2) + "B"
-  : n >= 1e6 ? (n / 1e6).toFixed(1) + "M"
+  n <= 0 ? "0"
+  : n >= 1e12 ? trim(n / 1e12, 1) + "T"
+  : n >= 1e9 ? trim(n / 1e9, 1) + "B"
+  : n >= 1e6 ? trim(n / 1e6, 1) + "M"
   : n >= 1e3 ? Math.round(n / 1e3) + "K"
   : String(Math.round(n));
 
@@ -190,3 +199,20 @@ export const dur = (s: number) =>
   s >= 86_400 ? (s / 86_400).toFixed(1) + "d"
   : s >= 3_600 ? (s / 3_600).toFixed(1) + "h"
   : Math.round(s / 60) + "m";
+
+/**
+ * Which categorical colour slot a member's series gets on a chart.
+ *
+ * Keyed on the order the board loads members in, which is join order, so the
+ * colour follows the person and not their rank: switching the window reorders
+ * the leaderboard and must not repaint anybody's line.
+ *
+ * There are six slots because the board has six seats. A seventh member gets
+ * -1 and is drawn in the neutral ramp rather than a seventh invented hue.
+ */
+export const SERIES_SLOTS = 6;
+
+export function slotOf(members: { username: string }[], username: string): number {
+  const i = members.findIndex((m) => m.username === username);
+  return i >= 0 && i < SERIES_SLOTS ? i : -1;
+}

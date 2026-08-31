@@ -6,7 +6,8 @@ import {
   WINDOWS,
   costPerKiloLine,
   denseDays,
-  sci,
+  slotOf,
+  toks,
   total,
   usd,
   windowDays,
@@ -14,7 +15,7 @@ import {
   type WindowKey,
 } from "@/lib/console/board";
 import { Scope } from "./console/charts";
-import { Chip, Chips, Fig, Ring, SegBar, Sticker, Sub, Tile } from "./console/bevel";
+import { Chip, Chips, Ring, SegBar, Sticker, Tile } from "./console/bevel";
 
 /**
  * The board, switched in the browser.
@@ -49,7 +50,11 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
 
   // The register and the scope keep their own timebase: thirty days, whatever
   // the window is. A strip chart with its own clock is what an instrument does.
-  const register = rows.map(({ m }) => ({ user: m.username, days: denseDays(m.days, 30) }));
+  const register = rows.map(({ m }) => ({
+    user: m.username,
+    days: denseDays(m.days, 30),
+    slot: slotOf(members, m.username),
+  }));
   const dates = register[0]?.days.map((d) => d.date) ?? [];
 
   const rates = rows
@@ -62,6 +67,7 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
 
   const slots = Math.max(0, 6 - rows.length);
   const leader = rows[0] ?? null;
+  const live = rows.length > 0;
 
   return (
     <section className="view on" id="lineup">
@@ -134,11 +140,7 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
             );
           })}
 
-          {rows.length === 0 && (
-            <div className="bt w4">
-              <Sub>nothing logged in this window</Sub>
-            </div>
-          )}
+          {rows.length === 0 && <EmptyBoard label={label} />}
 
 
 
@@ -182,6 +184,7 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
                   user: r.user,
                   costs: r.days.map((d) => d.cost),
                   lit: i === 0,
+                  slot: r.slot,
                 }))}
                 dates={dates}
               />
@@ -191,26 +194,44 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
           </div>
 
           <aside className="bside">
-            <Tile icon="cursor" title={`Pool · ${label}`}>
-            <Fig v={usd(pool)} />
-            <Sub>across {rows.length} member{rows.length === 1 ? "" : "s"}</Sub>
-            </Tile>
-            <Tile icon="check" title="Lines written">
-              <Fig v={lines.toLocaleString("en-US")} />
-              <Sub>agent-assisted</Sub>
-            </Tile>
-
-            <Tile icon="spark" title="Tokens burned">
-              <Fig v={sci(tokens)} />
-              <Sub>{label}</Sub>
-            </Tile>
-
-            <Tile icon="rocket" title="Cost per 1,000 lines">
-              <Fig v={avgRate === null ? "—" : usd(avgRate)} />
-              <Sub>
-                {bestRate ? `${bestRate.user} is cheapest at ${usd(bestRate.rate)}` : "no lines yet"}
-              </Sub>
-            </Tile>
+            {/* One card, four rows, rather than four cards with air between
+                them. The rows are readings off the same instrument, and the
+                totals only mean anything next to each other. */}
+            <div className="bstack">
+              <StatRow
+                icon="cursor"
+                title={`Pool · ${label}`}
+                value={live ? usd(pool) : NONE}
+                note={
+                  live
+                    ? `across ${rows.length} member${rows.length === 1 ? "" : "s"}`
+                    : "nothing has reported in this window"
+                }
+              />
+              <StatRow
+                icon="check"
+                title="Lines written"
+                value={live && lines > 0 ? lines.toLocaleString("en-US") : NONE}
+                note={live && lines > 0 ? "agent-assisted" : "counted off commits the agent signed"}
+              />
+              <StatRow
+                icon="spark"
+                title="Tokens burned"
+                value={live && tokens > 0 ? toks(tokens) : NONE}
+                note={live && tokens > 0 ? label : "totalled per machine, per day"}
+              />
+              <StatRow
+                icon="rocket"
+                title="Cost per 1,000 lines"
+                value={avgRate === null ? NONE : usd(avgRate)}
+                note={
+                  bestRate
+                    ? `${bestRate.user} is cheapest at ${usd(bestRate.rate)}`
+                    : "needs spend and lines together"
+                }
+                lead
+              />
+            </div>
           </aside>
         </div>
 
@@ -224,5 +245,78 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
         </footer>
       </div>
     </section>
+  );
+}
+
+/** What a stat prints when there is no reading to print. Not a zero: zero is a
+ *  measurement, and nothing has been measured. */
+const NONE = "\u2014";
+
+/** A row of the totals card. Same anatomy as the tile it replaces: sticker,
+ *  title, figure, supporting line. `lead` marks the one reading the board is
+ *  actually an argument about. */
+function StatRow({
+  icon, title, value, note, lead,
+}: {
+  icon: "cursor" | "spark" | "check" | "rocket";
+  title: string;
+  value: string;
+  note: string;
+  lead?: boolean;
+}) {
+  return (
+    <div className={lead ? "bsrow lead" : "bsrow"}>
+      <div className="bth">
+        <Sticker kind={icon} />
+        {title}
+      </div>
+      <div className={value === NONE ? "bfig none" : "bfig"}>{value}</div>
+      <div className="bsub">{note}</div>
+    </div>
+  );
+}
+
+/**
+ * The board with nothing on it.
+ *
+ * It was a grey rectangle reading "nothing logged in this window", which looks
+ * like a page that failed rather than a board waiting for its first machine.
+ * Now it says what will be in the list, keeps the shape of the list so the
+ * space is legibly a list, and gives the one command that fills it.
+ *
+ * The seats are deliberately not skeletons: they carry a rank and the word
+ * open, and nothing on them moves, because nothing is loading.
+ */
+function EmptyBoard({ label }: { label: string }) {
+  return (
+    <div className="bt w4 bempty">
+      <div className="bth">
+        <Sticker kind="rocket" />
+        {label === "today" ? "Nothing reported today" : `Nothing reported in the last ${label}`}
+      </div>
+      <p className="bemptyp">
+        The ranking goes here: who spent what, the days they worked, and what a
+        thousand lines cost each of them. A machine joins the board by running one
+        command on it.
+      </p>
+
+      <div className="bseats">
+        {[1, 2, 3, 4].map((n) => (
+          <div className="bseat" key={n}>
+            <span className="brk">{n}</span>
+            <span className="bav sm" />
+            <span className="bseatn">open</span>
+            <span className="bseg">
+              {Array.from({ length: 30 }, (_, k) => (
+                <i key={k} />
+              ))}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <code className="bcmd">npx github:ultim8xyz/tokenmax-cli setup &lt;token&gt;</code>
+      <span className="bcmdn">Your token is on the onboarding screen.</span>
+    </div>
   );
 }
