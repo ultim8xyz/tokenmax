@@ -15,7 +15,7 @@ import {
 import { maxDowntimeSeconds, type ActivityDay } from "@/lib/downtime";
 import { Shell } from "../../console/shell";
 import { Scope } from "../../console/charts";
-import { Chip, Chips, Fig, Ring, ScaleBar, SegBar, Sticker, Sub, Tile } from "../../console/bevel";
+import { Chip, Chips, Fig, Icon, Ring, ScaleBar, SegBar, Sticker, Sub, Tile } from "../../console/bevel";
 import { HueDrift } from "../../console/hue";
 
 export const dynamic = "force-dynamic";
@@ -71,27 +71,32 @@ export default async function ProfilePage({
       <HueDrift hue={member.hue} />
       <section className="view on" id="lineup">
         <div className="bevel">
-          <div className="bhead">
-            {member.avatarUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img className="bav" src={member.avatarUrl} alt="" />
-            ) : (
-              <span className="bav" />
-            )}
-            <div>
-              <h1>{member.displayName ?? member.username}</h1>
-              <div className="bm">
-                {rank > 0 ? `rank ${rank} of ${ranked.length}` : "unranked"} ·{" "}
-                {member.devices.length} {member.devices.length === 1 ? "machine" : "machines"} ·{" "}
-                {t.peak} agents at peak
-              </div>
-            </div>
-            <Link href="/" className="bback">
-              ← board
-            </Link>
-          </div>
-
           <div className="bgrid">
+            <div className="bt bid">
+              <div className="top">
+                {member.avatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img className="bav" src={member.avatarUrl} alt="" />
+                ) : (
+                  <span className="bav" />
+                )}
+                <div>
+                  <h1>{member.displayName ?? member.username}</h1>
+                  {rank > 0 && (
+                    <span className="rank">
+                      <Icon name="trophy" size={14} /> rank {rank} of {ranked.length}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Chips>
+                <Chip tone="n">
+                  {member.devices.length} machine{member.devices.length === 1 ? "" : "s"}
+                </Chip>
+                <Chip tone="n">{t.peak} agents at peak</Chip>
+                <Chip tone="n">{t.active} of 30 days</Chip>
+              </Chips>
+            </div>
             <Tile icon="cursor" title="Spend" span={2}>
               <Fig v={usd(t.cost)} />
               <Sub>{share}% of the ${Math.round(pot).toLocaleString("en-US")} pool</Sub>
@@ -231,10 +236,14 @@ export default async function ProfilePage({
             )}
           </div>
 
-          <div className="bfoot">
-            <span>spend is api list-price equivalent, not billed</span>
-            <span>{member.username} · 30 day window</span>
-          </div>
+          <footer className="bwm">
+          {/* Generated with the Higgsfield CLI (gpt_image_2), same sticker
+              treatment as the icons. Decorative, so the real name stays in the
+              nav and this is hidden from the accessibility tree. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/wordmark.png" alt="" aria-hidden="true" />
+          <span>spend is api list-price equivalent, not billed</span>
+        </footer>
         </div>
       </section>
     </Shell>

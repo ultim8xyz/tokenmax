@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Rolling } from "./rolling";
+import { Mark } from "./bevel";
 
 const VIEWS: [string, string][] = [
   ["/", "Leaderboard"],
@@ -23,7 +24,7 @@ export function Shell({ active, pot, members, hints, me, children }: Props) {
     <div id="shell">
       <header className="rail">
         <Link href="/" className="brand" aria-label="Leaderboard">
-          TOKEN<em>MAX</em>
+          <Mark />
         </Link>
         {/* The board's own plate already carries pool and members as modules,
             so the rail would print the same two figures a row above them.
@@ -32,7 +33,7 @@ export function Shell({ active, pot, members, hints, me, children }: Props) {
         {pot !== undefined && (
           <div className="pot">
             POOL <b><Rolling value={pot} format="usd0" /></b>
-            &nbsp;/&nbsp; <b>{members ?? "—"}</b> MEMBERS
+            &nbsp;·&nbsp; <b>{members ?? "—"}</b> members
           </div>
         )}
         <nav className="navs">
@@ -81,7 +82,7 @@ export function PlainShell({ children }: { children: React.ReactNode }) {
     <div id="shell">
       <header className="rail">
         <Link href="/" className="brand" aria-label="Leaderboard">
-          TOKEN<em>MAX</em>
+          <Mark />
         </Link>
       </header>
       <main id="stage">{children}</main>

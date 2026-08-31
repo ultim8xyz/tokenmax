@@ -893,24 +893,11 @@ button:focus-visible {
  * is the plate's sibling, not its child. Keep the two in step by hand. */
 .rail {
   background: #070809;
-  border-bottom: 1px solid #252b31;
 }
-.brand em { color: #e6ebf0; }
 
-/* The active nav was a solid white pill. Against the study's bloom it read as
- * a pill; against a matte rail it is the brightest object on the screen, and
- * the plate allows exactly one of those — the gauge. Same pressed state the
- * status strip already uses, and no radius, because nothing on a faceplate
- * has one. */
-.nav[aria-current="true"] {
-  color: #e6ebf0;
-  background: #101317;
-  border-color: #252b31;
-  border-radius: 0;
-}
-.nav { border-radius: 0; }
-.nav:hover { background: #0c0e10; }
-.nav.me, .nav.me[aria-current="true"] { background: none; border-color: transparent; }
+/* The plate's nav rules lived here. The plate is gone from every page, and
+ * they were still winning border-radius on the active link, which is what put
+ * a hard square edge inside a rounded control. */
 
 /* ══════════════════════════════════════════════════════════════════════════
    BEVEL
@@ -1286,3 +1273,163 @@ button:focus-visible {
   #settings .setwrap, #onboard .ob { padding: 20px 16px; }
   #onboard .ob { padding-top: 54px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NAV, in the same language as everything under it
+   The rail was still the last surface running the study's rules: a hairline
+   under it, a tracked all-caps wordmark, and pill links. All three are gone.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.rail {
+  background: #000;
+  border-bottom: 0;              /* the hairline that was cutting the page */
+  padding: 0 30px;
+  gap: 18px;
+}
+
+.bmark { display: flex; align-items: center; gap: 9px; }
+.bmark b {
+  font: 600 17px var(--ui);
+  color: #fff;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+.brand { letter-spacing: normal; text-transform: none; font-size: inherit; }
+
+/* Links become the same segmented control the board's window switch uses,
+ * so there is one control shape on the whole product. */
+.navs {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 13px;
+  background: #1c1c1e;
+}
+.nav {
+  padding: 7px 15px;
+  border-radius: 10px;
+  border: 0;
+  font: 500 13px var(--ui);
+  letter-spacing: normal;
+  text-transform: none;
+  color: #9a9aa0;
+  transition: color 0.18s var(--ease), background 0.18s var(--ease);
+}
+@media (hover: hover) { .nav:hover { color: #fff; background: none; } }
+.nav[aria-current="true"] { color: #fff; background: #2c2c31; border: 0; }
+.nav:focus-visible { outline: none; box-shadow: 0 0 0 2px #000, 0 0 0 4px #ff7a3d; }
+
+.nav.me { padding: 3px; background: none; }
+.nav.me .pfp { width: 28px; height: 28px; border-radius: 9px; }
+.nav.me, .nav.me[aria-current="true"] { background: none; border: 0; }
+
+.pot {
+  font: 400 13px var(--ui);
+  color: #6a6a70;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.pot b { color: #9a9aa0; font-weight: 500; }
+
+/* real icons, sized on the text they sit beside */
+.lic { flex: none; display: block; }
+
+/* ── the profile identity, back as a tall card ────────────────────────────
+ * A dot-separated mono subline read as hairline noise beside a 22px name;
+ * the facts belong in the same chips the rest of the product uses. */
+.bid {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  min-height: 218px;
+}
+.bid .top { display: flex; align-items: center; gap: 16px; }
+.bid .bav { width: 68px; height: 68px; border-radius: 20px; }
+.bid h1 {
+  margin: 0;
+  font: 600 30px/1.05 var(--ui);
+  color: #fff;
+  letter-spacing: -0.025em;
+}
+.bid .rank {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: 600 13px var(--ui);
+  color: #ffc53d;
+}
+
+@media (max-width: 720px) {
+  .rail { padding: 0 16px; gap: 10px; }
+  .bmark b { font-size: 15px; }
+  .bid { grid-column: span 1; min-height: 0; }
+  .bid .bav { width: 54px; height: 54px; border-radius: 16px; }
+  .bid h1 { font-size: 24px; }
+}
+
+/* ── it has to read as a ranking, not a row of profiles ───────────────────
+ * The rank was a 13px grey numeral, which is why the board looked like two
+ * member cards side by side. Position is the whole point of a leaderboard,
+ * so the numeral is the second largest thing in the tile and first place is
+ * the only one that gets the gold.
+ * ───────────────────────────────────────────────────────────────────────── */
+.brk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 2ch;
+  font: 700 30px/1 var(--ui);
+  color: #4a4a51;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.bmem.lead .brk { color: #ffc53d; }
+.bmem.lead { background: #1f1d18; }
+@media (hover: hover) { .bmem.lead:hover { background: #262319; } }
+.bav.sm { width: 46px; height: 46px; border-radius: 15px; }
+.bnm b { font-size: 17px; }
+
+/* the identity card's face, at a size worth looking at */
+.bid .bav { width: 96px; height: 96px; border-radius: 28px; }
+.bid h1 { font-size: 34px; }
+
+/* the wordmark carries the same weight and tracking as the figures */
+.bmark b { font-weight: 700; letter-spacing: -0.03em; font-size: 18px; }
+
+/* ── footer ───────────────────────────────────────────────────────────── */
+.bwm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 60px 0 30px;
+}
+.bwm img {
+  width: min(340px, 62%);
+  height: auto;
+  display: block;
+  opacity: 0.9;
+}
+.bwm span { font-size: 12px; color: #4a4a51; }
+
+@media (max-width: 720px) {
+  .brk { font-size: 22px; }
+  .bav.sm { width: 38px; height: 38px; border-radius: 12px; }
+  .bid .bav { width: 72px; height: 72px; border-radius: 22px; }
+  .bid h1 { font-size: 26px; }
+  .bwm img { width: 70%; }
+}
+
+/* .bhead already exists in the study with a blue-tinted hairline under it.
+ * That is the line cutting across under the page title. */
+.bevel .bhead { border: 0; }
+
+/* The generated wordmark ships on its own near-black ground, which reads as a
+ * box against a pure black page. `screen` drops the dark pixels and leaves the
+ * white keyline and the orange fill, so no alpha channel is needed. */
+.bwm img { mix-blend-mode: screen; }

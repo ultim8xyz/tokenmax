@@ -14,7 +14,7 @@ import {
   type WindowKey,
 } from "@/lib/console/board";
 import { Scope } from "./console/charts";
-import { Chip, Chips, Fig, Ring, SegBar, Sticker, Sub, Tile } from "./console/bevel";
+import { Chip, Chips, Fig, Icon, Ring, SegBar, Sticker, Sub, Tile } from "./console/bevel";
 
 /**
  * The board, switched in the browser.
@@ -117,11 +117,14 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
                 key={m.username}
                 href={`/u/${m.username}`}
                 prefetch
-                className="bt w2 bmem"
+                className={i === 0 ? "bt w2 bmem lead" : "bt w2 bmem"}
                 aria-label={`${m.username}, rank ${i + 1}, ${usd(t.cost)}`}
               >
                 <div className="bmemhead">
-                  <span className="brk">{i + 1}</span>
+                  <span className="brk">
+                    {i === 0 && <Icon name="trophy" size={15} />}
+                    {i + 1}
+                  </span>
                   {m.avatarUrl ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img className="bav sm" src={m.avatarUrl} alt="" />
@@ -208,13 +211,14 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
           ))}
         </div>
 
-        <div className="bfoot">
+        <footer className="bwm">
+          {/* Generated with the Higgsfield CLI (gpt_image_2), same sticker
+              treatment as the icons. Decorative, so the real name stays in the
+              nav and this is hidden from the accessibility tree. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/wordmark.png" alt="" aria-hidden="true" />
           <span>spend is api list-price equivalent, not billed</span>
-          <span>
-            n={rows.length}
-            {slots > 0 ? ` · ${slots} slot${slots === 1 ? "" : "s"} open` : ""}
-          </span>
-        </div>
+        </footer>
       </div>
     </section>
   );

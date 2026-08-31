@@ -152,3 +152,79 @@ export function ScaleBar({ pct, left, right }: { pct: number; left: string; righ
     </>
   );
 }
+
+/* ── real icons ───────────────────────────────────────────────────────────
+ * Lucide paths, inlined. Three glyphs does not justify a dependency, and
+ * Lucide's grid (24, stroke 2, round caps) is what keeps them consistent.
+ * They take currentColor so state is a CSS change, never a second asset. */
+
+const PATHS = {
+  back: "M19 12H5M12 19l-7-7 7-7",
+  trophy:
+    "M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z",
+  external: "M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6",
+} as const;
+
+export function Icon({ name, size = 16 }: { name: keyof typeof PATHS; size?: number }) {
+  return (
+    <svg
+      className="lic"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {PATHS[name].split("M").filter(Boolean).map((d, i) => (
+        <path key={i} d={`M${d}`} />
+      ))}
+    </svg>
+  );
+}
+
+/** The wordmark: a struck coin. Gradients do the metal — a radial face lit
+ *  from the upper left, a rim that runs bright to dark around the same axis,
+ *  a specular cap across the top and a rim light arc, plus one dimmer bounce
+ *  arc on the lower right so it reads as a round object and not a disc.
+ *  Same drawing as the favicon. */
+export function Mark() {
+  return (
+    <span className="bmark">
+      <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true">
+    <defs>
+      <radialGradient id="cf" cx="34%" cy="28%" r="78%">
+        <stop offset="0" stopColor="#FFF3C4"/>
+        <stop offset=".45" stopColor="#F7CF62"/>
+        <stop offset="1" stopColor="#D9992010"/>
+      </radialGradient>
+      <linearGradient id="cr" x1=".2" y1="0" x2=".8" y2="1">
+        <stop offset="0" stopColor="#FFE9A8"/>
+        <stop offset=".42" stopColor="#C98A22"/>
+        <stop offset="1" stopColor="#7A4E0B"/>
+      </linearGradient>
+      <linearGradient id="cs" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#B9781A"/>
+        <stop offset="1" stopColor="#8C5510"/>
+      </linearGradient>
+      <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#fff" stopOpacity=".85"/>
+        <stop offset="1" stopColor="#fff" stopOpacity="0"/>
+      </linearGradient>
+    </defs>
+    <circle cx="16" cy="16" r="15" fill="url(#cr)"/>
+    <circle cx="16" cy="16" r="12.4" fill="url(#cf)"/>
+    <path fill="url(#cs)" d="M16 8.8 L17.95 14.2 L23.7 14.4 L19.15 17.9 L20.75 23.5 L16 20.25 L11.25 23.5 L12.85 17.9 L8.3 14.4 L14.05 14.2 Z"/>
+    <ellipse cx="16" cy="9.4" rx="8.6" ry="4.2" fill="url(#cg)" opacity=".55"/>
+    <path fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="1.1" strokeLinecap="round"
+          d="M6.6 11.2 A11 11 0 0 1 15.4 5.2"/>
+    <path fill="none" stroke="#FFEFB0" strokeOpacity=".35" strokeWidth="1" strokeLinecap="round"
+          d="M25.6 21.4 A11 11 0 0 1 18.6 26.7"/>
+      </svg>
+      <b>tokenmax</b>
+    </span>
+  );
+}

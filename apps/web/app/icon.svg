@@ -1,9 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- A token: struck coin, five-point star knocked out of the face.
-       Flat, three values, no gradient — it has to survive 16px in a tab strip. -->
-  <circle cx="16" cy="16" r="15" fill="#C98A22"/>
-  <circle cx="16" cy="16" r="12.6" fill="#F0C14B"/>
-  <path fill="#2A1B06"
-        d="M16 7.8 L17.97 13.29 L23.8 13.47 L19.19 17.04 L20.82 22.63
-           L16 19.35 L11.18 22.63 L12.81 17.04 L8.2 13.47 L14.03 13.29 Z"/>
+  <!-- A struck coin. Radial face, directional rim, specular cap and a rim
+       light arc. Still legible at 16px: the gradients read as tone there,
+       the highlights as a single bright edge. -->
+  <defs>
+    <radialGradient id="cf" cx="34%" cy="28%" r="78%">
+      <stop offset="0" stop-color="#FFF3C4"/>
+      <stop offset=".45" stop-color="#F7CF62"/>
+      <stop offset="1" stop-color="#D9992010"/>
+    </radialGradient>
+    <linearGradient id="cr" x1=".2" y1="0" x2=".8" y2="1">
+      <stop offset="0" stop-color="#FFE9A8"/>
+      <stop offset=".42" stop-color="#C98A22"/>
+      <stop offset="1" stop-color="#7A4E0B"/>
+    </linearGradient>
+    <linearGradient id="cs" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B9781A"/>
+      <stop offset="1" stop-color="#8C5510"/>
+    </linearGradient>
+    <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <circle cx="16" cy="16" r="15" fill="url(#cr)"/>
+  <circle cx="16" cy="16" r="12.4" fill="url(#cf)"/>
+  <path fill="url(#cs)" d="M16 8.8 L17.95 14.2 L23.7 14.4 L19.15 17.9 L20.75 23.5 L16 20.25 L11.25 23.5 L12.85 17.9 L8.3 14.4 L14.05 14.2 Z"/>
+  <ellipse cx="16" cy="9.4" rx="8.6" ry="4.2" fill="url(#cg)" opacity=".55"/>
+  <path fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.1" stroke-linecap="round"
+        d="M6.6 11.2 A11 11 0 0 1 15.4 5.2"/>
+  <path fill="none" stroke="#FFEFB0" stroke-opacity=".35" stroke-width="1" stroke-linecap="round"
+        d="M25.6 21.4 A11 11 0 0 1 18.6 26.7"/>
 </svg>
