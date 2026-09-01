@@ -8,6 +8,13 @@ Apply in filename order:
 |---|---|
 | `0001_init.sql` | The whole schema |
 | `0002_onboarding.sql` | `profiles.onboarded_at`, and the leaderboard filter that hides members who have never synced |
+| `0004_lines.sql` | `lines_added`, `lines_removed`, `commits` |
+| `0005_drop_invite_links.sql` | Drops `invite_links` and `redeem_invite_link` |
+
+`0003` is missing on purpose: it added `invite_links`, signup opened before
+anything called it, and `0005` removed it. It is deleted rather than kept so a
+fresh database never creates a table only to drop it two files later — which is
+also why `0005` guards every statement with `if exists`.
 
 ```sh
 for f in supabase/migrations/*.sql; do
@@ -54,14 +61,28 @@ the only way in.
 
 ## Tests
 
-Both roll back when they finish, so they are safe to run repeatedly against a
-real database.
+All three roll back when they finish, and every assertion is either scoped to
+its own fixtures or expects zero, so they are safe to run repeatedly against a
+database that has real members in it.
 
 ```sh
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rollup.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rls.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/windows.sql
 ```
+
+Without a Postgres client installed, `run.sh` sends the same files through the
+Supabase Management API — the endpoint the migrations already go through. It
+prints one line per file and exits non-zero on the first assertion that raises.
+
+```sh
+opx run --env-file=supabase/tests/pat.env -- supabase/tests/run.sh
+```
+
+A fixture profile needs `onboarded_at` set. `0002` added it to the
+`leaderboard` WHERE, so a fixture without it is absent from the view and every
+assertion scoped to that row passes by matching nothing — which is what
+`windows.sql` was quietly doing.
 
 - `rollup.sql` — two devices sum, a re-push replaces, a delete un-counts.
 - `rls.sql` — anon sees nothing, an uninvited GitHub account sees nothing,

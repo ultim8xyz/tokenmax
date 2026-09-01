@@ -53,3 +53,18 @@ breaks the promise that paths never leave the machine.
 
 **Revive when:** a second device is actually syncing and the undercount shows up
 in a number you care about.
+
+## ~~The SQL contract tests can no longer run against production~~ — done 2026-08-29
+
+Fixed rather than parked. Every count assertion is scoped to its own fixtures;
+the ones expecting zero stay unscoped, because "sees nothing" is a stronger
+claim when there is something real to see.
+
+`windows.sql` turned out to be worse than fragile: its leaderboard assertions
+read the whole view, and the fixture profile had no `onboarded_at`, which 0002
+had added to the view's WHERE. Against the empty database it was written for,
+the view returned nothing and every window assertion passed by matching no rows.
+It had never tested anything.
+
+`supabase/tests/run.sh` runs all three through the Management API, since psql is
+not installed here. All three pass live, and each was mutation-checked.

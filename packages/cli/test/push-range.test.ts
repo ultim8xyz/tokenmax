@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { resolveRange, type PushOptions } from "../src/commands/push.js";
 import type { Config } from "../src/config.js";
 
@@ -44,4 +44,45 @@ describe("resolveRange", () => {
       expect(() => resolveRange(options, base, TODAY)).toThrow();
     },
   );
+});
+
+describe("resolveRange across a timezone-dependent day boundary", () => {
+  // `bun test` pins TZ=UTC, which is exactly the setting where a UTC-based and a
+  // local-based implementation agree — so the boundary has to be forced here or
+  // the assertions below are vacuous.
+  const ZONE = "America/New_York";
+  const original = process.env.TZ;
+  beforeEach(() => {
+    process.env.TZ = ZONE;
+  });
+  afterEach(() => {
+    process.env.TZ = original;
+  });
+
+  // 23:41 on the 28th in New York is already the 29th in UTC. Resolving in UTC
+  // stamps last_push_date a day ahead and drops the evening just worked.
+  const evening = () => new Date(Date.UTC(2026, 7, 29, 3, 41));
+
+  it("uses the local day, not the UTC one", () => {
+    expect(resolveRange({}, { ...base, last_push_date: "2026-08-28" }, evening())).toEqual({
+      since: "2026-08-28",
+      until: "2026-08-28",
+    });
+  });
+
+  it("counts --days back in local days", () => {
+    expect(resolveRange({ days: 2 }, base, evening())).toEqual({
+      since: "2026-08-27",
+      until: "2026-08-28",
+    });
+  });
+
+  // 23:30 on Nov 3 is Nov 4 in UTC, and the window reaches back over the end of
+  // DST, so a UTC-based shift lands a day short and skips Oct 30 entirely.
+  it("shifts back across a DST boundary without losing a day", () => {
+    expect(resolveRange({ days: 5 }, base, new Date(Date.UTC(2026, 10, 4, 4, 30)))).toEqual({
+      since: "2026-10-30",
+      until: "2026-11-03",
+    });
+  });
 });

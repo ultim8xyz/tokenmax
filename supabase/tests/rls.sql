@@ -5,6 +5,10 @@
 -- Asserts that a stranger sees nothing, that finishing GitHub OAuth without an
 -- invite is not membership, and that per-device rows never leave the owner.
 -- Raises on the first disagreement; no output means the contract holds.
+--
+-- Safe against a database with real members in it. The assertions that expect
+-- zero stay unscoped, because "sees nothing" is a stronger claim when there is
+-- something real to see; the ones that count rows are scoped to the fixtures.
 
 begin;
 
@@ -16,10 +20,12 @@ begin;
 
 insert into auth.users (id) values (:'owner_id'), (:'friend_id'), (:'hidden_id'), (:'random_id');
 
-insert into public.profiles (id, username, github_login, role, is_listed) values
-  (:'owner_id',  'owner',  'owner-login',  'owner',  true),
-  (:'friend_id', 'friend', 'friend-login', 'member', true),
-  (:'hidden_id', 'hidden', 'hidden-login', 'member', false);
+-- onboarded_at is what 0002 added to the leaderboard's WHERE; a fixture without
+-- it is absent from the view, which would make every board assertion vacuous.
+insert into public.profiles (id, username, github_login, role, is_listed, onboarded_at) values
+  (:'owner_id',  'owner',  'owner-login',  'owner',  true,  now()),
+  (:'friend_id', 'friend', 'friend-login', 'member', true,  now()),
+  (:'hidden_id', 'hidden', 'hidden-login', 'member', false, now());
 -- :random_id deliberately gets no profile: OAuth completed, never invited.
 
 insert into public.device_usage (user_id, usage_date, device_id, total_tokens, cost_usd)
@@ -68,10 +74,16 @@ reset role;
 set local role authenticated;
 set local request.jwt.claim.sub = 'aaaaaaaa-0000-0000-0000-000000000001';
 
-select pg_temp.expect('member sees every member',    (select count(*) from public.profiles), 3);
+select pg_temp.expect('member sees every member',
+                      (select count(*) from public.profiles
+                        where id::text like 'aaaaaaaa-%'), 3);
 -- The hidden member's rollup is not visible; the listed one's is.
-select pg_temp.expect('member sees listed rollups',  (select count(*) from public.daily_usage), 1);
-select pg_temp.expect('member sees listed board',    (select count(*) from public.leaderboard), 2);
+select pg_temp.expect('member sees listed rollups',
+                      (select count(*) from public.daily_usage
+                        where user_id::text like 'aaaaaaaa-%'), 1);
+select pg_temp.expect('member sees listed board',
+                      (select count(*) from public.leaderboard
+                        where username in ('owner', 'friend', 'hidden')), 2);
 select pg_temp.expect('member reads no foreign devices',
                       (select count(*) from public.device_usage), 0);
 select pg_temp.expect('member reads no invites',     (select count(*) from public.invites), 0);
