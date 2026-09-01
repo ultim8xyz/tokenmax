@@ -272,6 +272,7 @@ export default async function ProfilePage({
             <b>tokenmax</b>
           </span>
           <span>spend is api list-price equivalent, not billed</span>
+          <a className="bwmd" href="https://mishaovcharenko.com" target="_blank" rel="noreferrer">designed by misha</a>
         </footer>
         </div>
       </section>

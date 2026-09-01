@@ -23,19 +23,25 @@ function LoginInner() {
   }
 
   return (
-    <section className="view on" id="onboard">
+    <section className="view on gate" id="onboard">
       <div className="ob">
-        <div className="steps rise" style={{ "--i": 0 } as React.CSSProperties}>
-          <span>Step 01 of 02</span>
-          <i className="on" />
-          <i />
+        {/* The token is the whole hero. Two faces on one preserve-3d parent, so
+            the spin is a real rotation of the real asset rather than a flat
+            image being sheared. It is decorative, so it is hidden from
+            assistive tech and the page still reads as a single sign-in. */}
+        <div className="tok rise" style={{ "--i": 0 } as React.CSSProperties} aria-hidden="true">
+          <span className="tokglow" />
+          <div className="tokspin">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/coin.png" srcSet="/coin.png 1x, /coin@2x.png 2x" alt="" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="b" src="/coin.png" srcSet="/coin.png 1x, /coin@2x.png 2x" alt="" />
+          </div>
         </div>
 
-        <h2 className="rise" style={{ "--i": 1 } as React.CSSProperties}>
-          Join the board
-        </h2>
+        <h2 className="rise" style={{ "--i": 1 } as React.CSSProperties}>Join the board</h2>
         <p className="rise" style={{ "--i": 2 } as React.CSSProperties}>
-          GitHub, default scopes. Nothing is read from your repositories — the sign-in only
+          GitHub, default scopes. Nothing is read from your repositories. The sign-in only
           says who you are.
         </p>
 
@@ -50,13 +56,13 @@ function LoginInner() {
         </button>
 
         {denied && (
-          <div className="wait rise" style={{ "--i": 4 } as React.CSSProperties}>
+          <div className="wait">
             <span className="d" />
             <span>That account could not be admitted. Try signing in again.</span>
           </div>
         )}
         {failure && (
-          <div className="wait rise" style={{ "--i": 4 } as React.CSSProperties}>
+          <div className="wait">
             <span className="d" />
             <span>
               Sign-in failed — <b>{failure}</b>
