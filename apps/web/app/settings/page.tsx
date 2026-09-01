@@ -40,12 +40,12 @@ export default async function SettingsPage() {
               <AliasRow username={member.username} initial={member.displayName} />
             </Tile>
 
-            <Tile icon="rocket" title="Add a machine" span={2}>
+            <Tile icon="machine" title="Add a machine" span={2}>
               <MachineRow />
             </Tile>
 
             {member.role === "owner" && (
-              <Tile icon="spark" title="Members" span={4}>
+              <Tile icon="agents" title="Members" span={4}>
                 {roster.length === 0 ? (
                   <Sub>nobody yet</Sub>
                 ) : (
