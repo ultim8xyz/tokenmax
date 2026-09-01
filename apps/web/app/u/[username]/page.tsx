@@ -6,6 +6,7 @@ import {
   costPerKiloLine,
   denseDays,
   dur,
+  parseWindow,
   slotOf,
   streakOf,
   toks,
@@ -24,10 +25,19 @@ export const dynamic = "force-dynamic";
 
 export default async function ProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ username: string }>;
+  searchParams: Promise<{ w?: string }>;
 }) {
   const { username } = await params;
+  const { w } = await searchParams;
+  // Which leaderboard window you came from. The board keeps it in client state
+  // and only mirrors it into the URL, so nothing carried it here and every way
+  // back landed on the 7-day default. parseWindow launders it: the value is
+  // going straight into an href.
+  const from = parseWindow(w);
+  const back = from === "7d" ? "/" : `/?w=${from}`;
   const viewer = await requireMember(`/u/${username}`);
   const member = await loadMember(username);
   if (!member) notFound();
@@ -71,7 +81,7 @@ export default async function ProfilePage({
   return (
     <Shell active={`/u/${viewer.username}`} pot={pot} members={board.length} me={viewer}>
       <HueDrift hue={member.hue} />
-      <BackOnEscape href="/" />
+      <BackOnEscape href={back} />
       <section className="view on" id="lineup">
         <div className="bevel">
           <div className="bgrid">
@@ -86,7 +96,7 @@ export default async function ProfilePage({
                 <span className="bav" />
               )}
               <div className="bidb">
-                <Link href="/" className="bidout" aria-label="Back to the leaderboard">
+                <Link href={back} className="bidout" aria-label="Back to the leaderboard">
                   <Icon name="back" />
                   <span>leaderboard</span>
                 </Link>
@@ -116,7 +126,7 @@ export default async function ProfilePage({
                 </Chips>
               </div>
             </div>
-            <Tile icon="cursor" title="Spend" span={2}>
+            <Tile icon="dollar" title="Spend" span={2}>
               <Fig v={usd(t.cost)} />
               <Sub>{share}% of the ${Math.round(pot).toLocaleString("en-US")} pool</Sub>
               <SegBar costs={days.map((d) => d.cost)} />
@@ -145,7 +155,7 @@ export default async function ProfilePage({
             </Tile>
 
 
-            <Tile icon="spark" title="Tokens burned">
+            <Tile icon="fire" title="Tokens burned">
               <Fig v={toks(t.tokens)} />
               <Sub>across {t.sessions} sessions</Sub>
               <Chips>
@@ -165,7 +175,7 @@ export default async function ProfilePage({
             </Tile>
 
             <div className="bpair w4">
-              <Tile icon="rocket" title="This month at a glance">
+              <Tile icon="glass" title="This month at a glance">
                 <div className="brings col">
                   <Ring
                     pct={(t.active / 30) * 100}
@@ -239,7 +249,7 @@ export default async function ProfilePage({
               )}
             </Tile>
 
-            <Tile icon="rocket" title="Agents at once">
+            <Tile icon="agents" title="Agents at once">
               <Fig v={String(t.peak)} />
               <Sub>peak concurrent this window</Sub>
             </Tile>
@@ -251,7 +261,7 @@ export default async function ProfilePage({
 
             {/* A machine name is the owner's business and nobody else's. */}
             {isSelf && (
-              <Tile icon="rocket" title="Your machines" span={4}>
+              <Tile icon="machine" title="Your machines" span={4}>
                 <div className="brigs">
                   {member.devices.length === 0 && <Sub>nothing reporting yet</Sub>}
                   {member.devices.map((d) => (

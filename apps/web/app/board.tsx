@@ -44,6 +44,9 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
     .sort((a, b) => b.t.cost - a.t.cost);
 
   const label = WINDOWS.find((x) => x.key === window)!.label.toLowerCase();
+  // 7d is the default the server assumes, so it stays out of the URL. Anything
+  // else has to travel with the link, or a profile's back button lands on 7d.
+  const q = window === "7d" ? "" : `?w=${window}`;
   const pool = rows.reduce((a, r) => a + r.t.cost, 0);
   const lines = rows.reduce((a, r) => a + r.t.linesAdded, 0);
   const tokens = rows.reduce((a, r) => a + r.t.tokens, 0);
@@ -100,7 +103,7 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
             return (
               <Link
                 key={m.username}
-                href={`/u/${m.username}`}
+                href={`/u/${m.username}${q}`}
                 prefetch
                 className={i === 0 ? "bt w2 bmem lead" : "bt w2 bmem"}
                 aria-label={`${m.username}, rank ${i + 1}, ${usd(t.cost)}`}
@@ -141,56 +144,6 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
           })}
 
           {rows.length === 0 && <EmptyBoard label={label} />}
-
-
-
-
-            <div className="bpair">
-          {leader && (
-            <Tile icon="rocket" title="At a glance">
-              <div className="brings col">
-                <Ring
-                  pct={Math.round((leader.t.cost / Math.max(1, pool)) * 100)}
-                  colour="var(--bv-orange)"
-                  value={`${Math.round((leader.t.cost / Math.max(1, pool)) * 100)}%`}
-                  label={leader.m.username}
-                  note="of the pool"
-                />
-                <Ring
-                  pct={(rows.filter((r) => r.t.linesAdded > 0).length / Math.max(1, rows.length)) * 100}
-                  colour="var(--bv-lime)"
-                  value={`${rows.filter((r) => r.t.linesAdded > 0).length}/${rows.length}`}
-                  label="Reporting lines"
-                  note="members synced"
-                />
-                <Ring
-                  pct={(rows.length / 6) * 100}
-                  colour="var(--bv-peri)"
-                  value={`${rows.length}`}
-                  label="Members"
-                  note={slots > 0 ? `${slots} slots open` : "board full"}
-                />
-              </div>
-            </Tile>
-          )}
-          {dates.length > 0 && (
-            <div className="bt w4 bscope scope">
-              <div className="bth">
-                <Sticker kind="cursor" />
-                Daily spend
-              </div>
-              <Scope
-                series={register.map((r, i) => ({
-                  user: r.user,
-                  costs: r.days.map((d) => d.cost),
-                  lit: i === 0,
-                  slot: r.slot,
-                }))}
-                dates={dates}
-              />
-            </div>
-          )}
-            </div>
           </div>
 
           <aside className="bside">
@@ -199,7 +152,7 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
                 totals only mean anything next to each other. */}
             <div className="bstack">
               <StatRow
-                icon="cursor"
+                icon="dollar"
                 title={`Pool · ${label}`}
                 value={live ? usd(pool) : NONE}
                 note={
@@ -215,13 +168,13 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
                 note={live && lines > 0 ? "agent-assisted" : "counted off commits the agent signed"}
               />
               <StatRow
-                icon="spark"
+                icon="fire"
                 title="Tokens burned"
                 value={live && tokens > 0 ? toks(tokens) : NONE}
                 note={live && tokens > 0 ? label : "totalled per machine, per day"}
               />
               <StatRow
-                icon="rocket"
+                icon="spark"
                 title="Cost per 1,000 lines"
                 value={avgRate === null ? NONE : usd(avgRate)}
                 note={
@@ -233,6 +186,53 @@ export function Board({ members, initial }: { members: MemberRow[]; initial: Win
               />
             </div>
           </aside>
+        </div>
+
+        <div className="bpair bfull">
+            {leader && (
+              <Tile icon="glass" title="At a glance">
+                <div className="brings col">
+                  <Ring
+                    pct={Math.round((leader.t.cost / Math.max(1, pool)) * 100)}
+                    colour="var(--bv-orange)"
+                    value={`${Math.round((leader.t.cost / Math.max(1, pool)) * 100)}%`}
+                    label={leader.m.username}
+                    note="of the pool"
+                  />
+                  <Ring
+                    pct={(rows.filter((r) => r.t.linesAdded > 0).length / Math.max(1, rows.length)) * 100}
+                    colour="var(--bv-lime)"
+                    value={`${rows.filter((r) => r.t.linesAdded > 0).length}/${rows.length}`}
+                    label="Reporting lines"
+                    note="members synced"
+                  />
+                  <Ring
+                    pct={(rows.length / 6) * 100}
+                    colour="var(--bv-peri)"
+                    value={`${rows.length}`}
+                    label="Members"
+                    note={slots > 0 ? `${slots} slots open` : "board full"}
+                  />
+                </div>
+              </Tile>
+            )}
+            {dates.length > 0 && (
+              <div className="bt w4 bscope scope">
+                <div className="bth">
+                  <Sticker kind="cursor" />
+                  Daily spend
+                </div>
+                <Scope
+                  series={register.map((r, i) => ({
+                    user: r.user,
+                    costs: r.days.map((d) => d.cost),
+                    lit: i === 0,
+                    slot: r.slot,
+                  }))}
+                  dates={dates}
+                />
+              </div>
+            )}
         </div>
 
         <footer className="bwm">
@@ -259,7 +259,7 @@ const NONE = "\u2014";
 function StatRow({
   icon, title, value, note, lead,
 }: {
-  icon: "cursor" | "spark" | "check" | "rocket";
+  icon: "cursor" | "spark" | "check" | "dollar" | "fire" | "glass";
   title: string;
   value: string;
   note: string;
@@ -292,7 +292,7 @@ function EmptyBoard({ label }: { label: string }) {
   return (
     <div className="bt w4 bempty">
       <div className="bth">
-        <Sticker kind="rocket" />
+        <Sticker kind="glass" />
         {label === "today" ? "Nothing reported today" : `Nothing reported in the last ${label}`}
       </div>
       <p className="bemptyp">
