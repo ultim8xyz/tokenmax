@@ -1368,8 +1368,29 @@ button:focus-visible {
   }
 }
 
-/* Pill, per the reference lock's 999px button role. */
-#onboard.gate .gh { border-radius: 999px; }
+/* The gate carries no navigation. There is exactly one thing to do here and
+ * the mark linked back to a page that redirects straight to this one, so the
+ * rail was a control that could only return you to where you already were.
+ * Scoped with :has() rather than a prop on PlainShell, because that shell is
+ * also the error page, the 404, /cli and connect-machine, and all four of
+ * those still want their rail. */
+#shell:has(.gate) .rail { display: none; }
+
+/* Pill, per the reference lock's 999px button role, in the grey the rest of
+ * the product already uses for a pressable surface: the same #2c2c31 as the
+ * active nav pill and the settings buttons, going to #37373d on hover. The
+ * white fill it replaced was the brightest thing on a black page, which put
+ * the loudest surface on the button rather than on the token. Hover moves the
+ * background rather than the opacity, so the GitHub mark does not fade with
+ * it. */
+#onboard.gate .gh {
+  border-radius: 999px;
+  background: #2c2c31;
+  color: #fff;
+}
+@media (hover: hover) {
+  #onboard.gate .gh:not(:disabled):hover { opacity: 1; background: #37373d; }
+}
 #onboard.gate .wait { text-align: left; }
 
 @media (max-height: 560px) {
