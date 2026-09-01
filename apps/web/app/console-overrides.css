@@ -1286,14 +1286,14 @@ button:focus-visible {
 
 /* ── the gate ─────────────────────────────────────────────────────────────
  * One hero, one action, no scroll. Scoped to .gate because #onboard is also
- * the error page, the 404, /cli and connect-machine — restyling the id would
+ * the error page, the 404, /cli and connect-machine. Restyling the id would
  * redesign four surfaces nobody asked about.
  *
  * Direction is locked to three.tools' "midnight command center": black
  * canvas, flat surfaces with depth from background shifts rather than
  * shadows, and the ember accent kept strictly to the call to action. The
- * composition — one luminous object centre stage with the controls stacked
- * beneath it and no navigation — is borrowed from desktop.fm's disc hero,
+ * composition, one luminous object centre stage with the controls stacked
+ * beneath it and no navigation, is borrowed from desktop.fm's disc hero,
  * and the object-emits-its-own-light treatment from Active Theory. The glow
  * takes the token's own violet, never the orange, so the accent stays the
  * one thing on screen that means "press me".
@@ -1317,6 +1317,34 @@ button:focus-visible {
   text-align: center;
 }
 #onboard.gate .steps { display: none; }
+
+/* The shader is the page's ground, so it is the bottom layer and never takes
+ * a click: a decorative full-bleed canvas that swallowed the pointer would
+ * make the one button on the page feel broken. */
+#onboard.gate .acid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+/* A scrim, not a dimmer. The shader keeps the props it was given; this pools
+ * darkness under the copy so the paragraph clears contrast, and falls off well
+ * before the edges so the pattern still reads as the page's ground. Without it
+ * the muted body text sits on moving orange and is genuinely unreadable. */
+#onboard.gate .acid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    58% 46% at 50% 52%,
+    #000 0%,
+    oklch(0 0 0 / 0.86) 38%,
+    oklch(0 0 0 / 0.5) 62%,
+    transparent 84%
+  );
+}
+#onboard.gate .ob { position: relative; z-index: 1; }
 #onboard.gate h2 { margin: 0 0 10px; }
 #onboard.gate p { margin: 0 0 24px; font-size: 14px; }
 
@@ -1343,19 +1371,37 @@ button:focus-visible {
   );
 }
 #onboard.gate .tokspin {
+  --thick: clamp(10px, 1.7vh, 17px);
+  --slices: 14;
   position: relative;
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
 }
-#onboard.gate .tokspin img {
+#onboard.gate .tokspin img,
+#onboard.gate .tokspin .sl {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  backface-visibility: hidden;
 }
-#onboard.gate .tokspin .b { transform: rotateY(180deg); }
+#onboard.gate .tokspin img { backface-visibility: hidden; }
+
+/* The two faces sit at either end of the stack, so the coin has a measured
+ * thickness rather than the two of them being coincident. */
+#onboard.gate .tokspin .f { transform: translateZ(calc(var(--thick) / 2)); }
+#onboard.gate .tokspin .b { transform: translateZ(calc(var(--thick) / -2)) rotateY(180deg); }
+
+/* The body. Each slice is the same art pushed a little further back and dimmed,
+ * so edge-on the stack reads as a lit metal rim instead of a flat line. The
+ * darkening runs with depth, which is what gives the edge its curve. */
+#onboard.gate .tokspin .sl {
+  background: url(/coin.png) center / contain no-repeat;
+  transform: translateZ(
+    calc(var(--thick) / 2 - var(--thick) / (var(--slices) - 1) * var(--l))
+  );
+  filter: brightness(calc(0.34 + 0.16 * (1 - var(--l) / var(--slices))));
+}
 
 /* Motion is opt-in: a browser that does not understand the query gets a still
  * token, which is the honest fallback for a decorative loop. linear because a
@@ -1391,7 +1437,33 @@ button:focus-visible {
 @media (hover: hover) {
   #onboard.gate .gh:not(:disabled):hover { opacity: 1; background: #37373d; }
 }
-#onboard.gate .wait { text-align: left; }
+/* The failure banner. Scoped to .gate on purpose: #onboard is also the
+ * connect-machine step, where .wait is a live status row whose dot pulses and
+ * then goes green on .done. That dot means "still happening"; here the thing
+ * has already happened and failed, so it takes an X from the same Lucide set
+ * as the rest of the product's real icons, on currentColor.
+ *
+ * The rest is legibility. This banner sits on a bright, moving orange shader,
+ * so it cannot borrow contrast from the page: the card goes fully opaque and
+ * a touch darker than #1c1c1e, a hairline cuts its edge where the ground
+ * behind it is light, and a shadow grounds it instead of letting it float. */
+#onboard.gate .wait {
+  text-align: left;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px 16px;
+  background: #161619;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px rgb(0 0 0 / 0.45);
+  color: #b4b4bb;
+  line-height: 1.5;
+}
+/* Nudged down by a hair so the X centres on the cap height of the first line
+ * rather than on its line box, and stays put when the copy wraps. */
+#onboard.gate .wait .lic { color: #ff8a4c; margin-top: 2px; }
+/* The value is a machine code, so it is set in the mono the rest of the
+ * product uses for machine output, not in the prose face. */
+#onboard.gate .wait b { font-family: var(--mn); font-size: 0.92em; color: #fff; }
 
 @media (max-height: 560px) {
   #onboard.gate .tok { width: clamp(96px, 20vh, 150px); height: clamp(96px, 20vh, 150px); }

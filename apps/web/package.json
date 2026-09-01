@@ -12,9 +12,13 @@
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
+    "face-api.js": "^0.22.2",
     "next": "^15.5.0",
+    "ogl": "^1.0.11",
+    "postprocessing": "^6.39.4",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@types/bun": "^1.4.0",
