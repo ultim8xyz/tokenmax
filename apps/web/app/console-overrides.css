@@ -1496,7 +1496,10 @@ button:focus-visible {
 }
 
 @media (max-width: 720px) {
-  .brk { font-size: 22px; }
+  /* The numeral plus a 26px coin did not fit its track at 390px and the coin
+   * was cut. Smaller coin, narrower minimum, and it stops shrinking. */
+  .brk { font-size: 22px; min-width: 1.5ch; flex: none; }
+  .brk .gold { width: 20px; height: 20px; }
   .bav.sm { width: 38px; height: 38px; border-radius: 12px; }
   .bid .bav { width: 72px; height: 72px; border-radius: 22px; }
   .bid h1 { font-size: 26px; }
@@ -1524,6 +1527,10 @@ button:focus-visible {
 @media (max-width: 1180px) {
   .bt.w3 { grid-column: span 2; }
   .brings.col { flex-direction: row; }
+  /* ...but not inside .bpair. That tile is a fixed 232px track until 900px,
+   * and three rings laid in a row need 297px, so they hung 55px off the left
+   * edge of the card. .bpair flips them itself at its own breakpoint. */
+  .bpair .brings.col { flex-direction: column; }
 }
 @media (max-width: 720px) {
   .bt.w3 { grid-column: span 1; }
@@ -1568,12 +1575,19 @@ button:focus-visible {
 
 /* glance and the chart share one row: a narrow column of rings, then the plot */
 .bpair { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 14px; align-items: stretch; }
-.bpair > .bt { min-height: 0; }
+/* The chart tile carries w4 from the page grid it used to live in, and a
+ * span of 4 in a two-column grid gets pushed onto its own row. .bmain used to
+ * reset that for everything inside it; the pair has to reset it for itself now
+ * that it stands on its own. */
+.bpair > .bt { min-height: 0; grid-column: auto; }
 .bpair .bscope { min-height: 0; }
 @media (max-width: 900px) {
   .bpair { grid-template-columns: minmax(0, 1fr); }
   .bpair .brings.col { flex-direction: row; }
 }
+/* Belt and braces: a row of rings wraps rather than overflowing, whatever a
+ * later breakpoint does to the tile it is sitting in. */
+.brings.col { flex-wrap: wrap; }
 
 /* Stacked, the rings were setting the height of the whole row and leaving the
  * chart with dead space under it. Smaller ring, tighter stack, label beside
@@ -1621,10 +1635,15 @@ button:focus-visible {
 .bstack {
   --r: 18px;
   --pad: 6px;
-  height: 100%;
+  /* The rail reads as one row per member, so its rows have to share the
+   * ranking's pitch exactly: same gap, and the card pulled up over its own
+   * inset so row one starts level with member one rather than 6px below it.
+   * Matching only the total height left the fourth row 9px adrift. */
+  height: calc(100% + var(--pad) * 2);
+  margin: calc(var(--pad) * -1) 0;
   display: flex;
   flex-direction: column;
-  gap: var(--pad);
+  gap: 14px;
   padding: var(--pad);
   border-radius: var(--r);
   background: #0e0e10;
@@ -1656,16 +1675,29 @@ button:focus-visible {
  * the one row that gets more height and a lighter surface. Ranking is still by
  * spend; that tension is Jax's to settle, not this stylesheet's. */
 .bstack > .bsrow.lead {
-  flex: 1.3 1 0;
+  /* Equal flex, not 1.3. The rail now stands beside the member rows and nothing
+   * else, so four equal rows read as one-per-member. The lead stat keeps its
+   * lighter surface; height is no longer how it argues for itself. */
+  flex: 1 1 0;
   background: var(--bv-tile2);
 }
 .bstack > .bsrow.lead .bfig { font-size: 30px; }
+
+/* Glance and the spend chart used to sit inside .bmain, which meant the totals
+ * rail had to stretch past the last member to match the column. They read
+ * against the whole board rather than against any one member, so they moved out
+ * to their own full-width row and the rail now ends where the ranking ends.
+ * Exact one-to-one alignment is not claimed: .bstack carries a 6px inset that
+ * .bmain does not, so the rows drift by that inset. The correspondence reads. */
+.bpair.bfull { margin-top: 14px; }
 
 @media (max-width: 1000px) {
   /* Stacked under the board there is no column height to fill, so the rows go
    * back to their own heights rather than stretching to a screen. */
   .bside { display: block; }
-  .bstack { height: auto; }
+  /* Stacked under the board there is no column to line up with, so the card
+   * stops pulling over its inset and the rows go back to their own heights. */
+  .bstack { height: auto; margin: 0; gap: var(--pad); }
   .bstack > .bsrow, .bstack > .bsrow.lead { flex: 0 0 auto; min-height: 0; }
 }
 
