@@ -1,7 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import { SCRIPT_PATH } from "./scheduler.js";
 
 const SETTINGS_PATH = join(homedir(), ".claude", "settings.json");
 /** Long enough for a cold `npx` fetch, short enough not to hang a quit. */
@@ -23,8 +22,15 @@ interface Settings {
   [key: string]: unknown;
 }
 
-function isOurs(group: HookGroup): boolean {
-  return group.hooks?.some((h) => h.command?.includes(SCRIPT_PATH)) ?? false;
+/**
+ * $HOME rather than this machine's absolute path, so a settings.json synced
+ * between machines with different usernames still points at the right script.
+ */
+export const HOOK_COMMAND = '/bin/sh "$HOME/.tokenmax/auto-push.sh"';
+
+/** Matches the absolute, $HOME and ~ forms, so no form gets a duplicate. */
+export function isOurs(group: HookGroup): boolean {
+  return group.hooks?.some((h) => h.command?.includes(".tokenmax/auto-push.sh")) ?? false;
 }
 
 function read(): Settings | null {
@@ -67,7 +73,7 @@ export function installHook(): boolean {
 
   settings.hooks.SessionEnd.push({
     hooks: [
-      { type: "command", command: `/bin/sh ${SCRIPT_PATH}`, timeout: TIMEOUT_SECONDS, async: true },
+      { type: "command", command: HOOK_COMMAND, timeout: TIMEOUT_SECONDS, async: true },
     ],
   });
   write(settings);

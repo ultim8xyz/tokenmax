@@ -624,8 +624,9 @@ import { homedir as homedir4 } from "os";
 import { dirname as dirname2, join as join4 } from "path";
 var SETTINGS_PATH = join4(homedir4(), ".claude", "settings.json");
 var TIMEOUT_SECONDS = 120;
+var HOOK_COMMAND = '/bin/sh "$HOME/.tokenmax/auto-push.sh"';
 function isOurs(group) {
-  return group.hooks?.some((h) => h.command?.includes(SCRIPT_PATH)) ?? false;
+  return group.hooks?.some((h) => h.command?.includes(".tokenmax/auto-push.sh")) ?? false;
 }
 function read() {
   if (!existsSync3(SETTINGS_PATH)) return {};
@@ -651,7 +652,7 @@ function installHook() {
   if (settings.hooks.SessionEnd.some(isOurs)) return true;
   settings.hooks.SessionEnd.push({
     hooks: [
-      { type: "command", command: `/bin/sh ${SCRIPT_PATH}`, timeout: TIMEOUT_SECONDS, async: true }
+      { type: "command", command: HOOK_COMMAND, timeout: TIMEOUT_SECONDS, async: true }
     ]
   });
   write(settings);
